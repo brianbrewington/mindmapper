@@ -1,0 +1,448 @@
+/* Global body styling with modern font stack */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* Prevents scrollbars */
+    background-color: #f0f2f5;
+    /* Light gray background */
+}
+
+/* Loading screen that shows while fonts are loading */
+#loadingIndicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    background-color: #f0f2f5;
+    z-index: 9999;
+    color: #555;
+}
+
+/* Canvas styling with different cursor states */
+#canvas {
+    display: block;
+    background-color: #ffffff;
+    cursor: grab;
+    z-index: 1;
+}
+
+#canvas.connecting {
+    cursor: crosshair;
+}
+
+/* When connecting bubbles */
+#canvas:active {
+    cursor: grabbing;
+}
+
+/* When dragging */
+
+/* Control panel styling - floating toolbar at top-left */
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    max-width: calc(100% - 80px);
+    z-index: 10;
+}
+
+/* Instruction text in control panel */
+#controls span {
+    font-size: 12px;
+    color: #555;
+    padding-left: 10px;
+    border-left: 2px solid #eee;
+}
+
+/* Button styling for all interactive elements */
+button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    /* Ensure tooltips work properly */
+}
+
+button:hover {
+    background-color: #f0f0f0;
+}
+
+button:disabled {
+    background-color: #f8f8f8;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* Ensure Load button tooltip works properly */
+#loadBtn {
+    z-index: 10;
+    /* Ensure it's above the hidden file input */
+}
+
+/* Hide file input but keep it functional */
+input[type="file"] {
+    display: none;
+    pointer-events: none;
+    /* Prevent interference with tooltips */
+}
+
+/* Context menu styling - appears on right-click */
+#contextMenu {
+    position: absolute;
+    display: none;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 6px 0;
+    min-width: 200px;
+    z-index: 1000;
+}
+
+#contextMenu button {
+    text-align: left;
+}
+
+/* Help button - floating blue circle in top-right */
+#helpBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+/* Modal overlay styling for help and comment dialogs */
+#helpModal,
+#commentModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    font-family: 'Nunito', sans-serif;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.modal-content ul {
+    padding-left: 20px;
+}
+
+/* Keyboard shortcut styling */
+.modal-content kbd {
+    background-color: #eee;
+    border-radius: 3px;
+    border: 1px solid #b4b4b4;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+
+/* Comment display area with scroll */
+#commentDisplay {
+    white-space: pre-wrap;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Color palette for bubble colors */
+#colorPalette {
+    display: flex;
+    gap: 5px;
+    border-left: 2px solid #eee;
+    padding-left: 10px;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.1s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: #333;
+}
+
+/* Text input for creating new bubbles */
+#textInput {
+    position: absolute;
+    display: none;
+    border: 1px dashed #999;
+    background-color: rgba(255, 255, 255, 0.8);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: none;
+    z-index: 100;
+    min-width: 150px;
+    min-height: 50px;
+}
+
+/* Scenes panel styling */
+#scenesPanel {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    max-width: 300px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+#scenesPanel.collapsed {
+    height: 40px;
+    overflow: hidden;
+}
+
+#scenesPanel.collapsed #scenesList,
+#scenesPanel.collapsed #scenesControls {
+    display: none;
+}
+
+/* Large play/stop button for collapsed panel */
+#scenesPanel.collapsed #largePlayBtn {
+    display: inline-block;
+}
+
+#scenesPanel.collapsed #largeStopBtn {
+    display: inline-block;
+}
+
+#largePlayBtn,
+#largeStopBtn {
+    margin-left: 10px;
+    width: 0;
+    height: 0;
+    border: none;
+    cursor: pointer;
+    display: none;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#largePlayBtn {
+    border-left: 12px solid #28a745;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    margin-right: 5px;
+}
+
+#largeStopBtn {
+    width: 16px;
+    height: 16px;
+    background-color: #dc3545;
+    border-radius: 0;
+}
+
+#largePlayBtn:hover {
+    border-left-color: #218838;
+    transform: scale(1.1);
+}
+
+#largeStopBtn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+}
+
+#scenesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#scenesHeader h3 {
+    flex: 1;
+    margin-right: 10px;
+}
+
+#scenesPlayControls {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+}
+
+#scenesPanel h3 {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+#toggleScenesBtn {
+    background: none;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+#toggleScenesBtn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+#scenesList {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.scene-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 2px 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.scene-item:hover {
+    background-color: #e9ecef;
+}
+
+.scene-item.selected {
+    background-color: #007bff;
+    color: white;
+}
+
+.scene-name {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    cursor: text;
+}
+
+/* Make emoji icons larger on buttons */
+button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+}
+
+.scene-name.editing {
+    background-color: white;
+    border: 1px solid #007bff;
+    border-radius: 3px;
+    padding: 2px 4px;
+    outline: none;
+}
+
+.scene-edit-icon {
+    margin-left: 8px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-size: 12px;
+}
+
+.scene-edit-icon:hover {
+    opacity: 1;
+}
+
+.scene-item:hover .scene-edit-icon {
+    opacity: 0.8;
+}
+
+#scenesControls {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+#scenesControls button {
+    flex: 1;
+    min-width: 60px;
+    font-size: 12px;
+    padding: 6px 8px;
+}
+
+#sceneNameOverlay {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 2000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

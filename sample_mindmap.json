@@ -1,0 +1,408 @@
+{
+  "elements": [
+    {
+      "type": "bubble",
+      "id": 1765294576517,
+      "x": -337.9977362381395,
+      "y": -104.88423560062039,
+      "text": "SAS Tech Platform",
+      "radiusX": 96.21593475341797,
+      "radiusY": 28.799999999999997,
+      "color": "#87CEEB",
+      "fontSize": 16,
+      "comment": "This is a hidden note. Right-click to view or edit."
+    },
+    {
+      "type": "bubble",
+      "id": 1765294594034.3794,
+      "x": -24.5,
+      "y": -27.5,
+      "text": "Fractal",
+      "radiusX": 51.567970275878906,
+      "radiusY": 28.799999999999997,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294602097.473,
+      "x": 103.5,
+      "y": 171.5,
+      "text": "\"The Obstacle\nis the Way\"",
+      "radiusX": 78.85594940185547,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294629759.8506,
+      "x": 140.32379731438928,
+      "y": 335.9324975010447,
+      "text": "Limited bandwidth-->\n run wiregapped",
+      "radiusX": 111.48792266845703,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294644848.7979,
+      "x": 308.2597236105309,
+      "y": 261.87643301016857,
+      "text": "limited power-->\nrun distributed",
+      "radiusX": 91.71994018554688,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294673060.2288,
+      "x": 326.4199078701765,
+      "y": 164.85240537122172,
+      "text": "limited time-->\nrun simple",
+      "radiusX": 84.7679443359375,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294809296.1116,
+      "x": 157.5,
+      "y": 56.5,
+      "text": "Must work w/\npeople-tech only",
+      "radiusX": 92.92794036865234,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif",
+      "comment": "This enables the spring prototype"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294909320.2153,
+      "x": -211.5208047777402,
+      "y": 106.00603812012388,
+      "text": "As a person is\nto the group,\nso the group is\nto larger groups",
+      "radiusX": 88.23192596435547,
+      "radiusY": 57.599999999999994,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765294988714.886,
+      "x": -96.65625252861898,
+      "y": 302.9948067227539,
+      "text": "Sovereign AI",
+      "radiusX": 73.19995880126953,
+      "radiusY": 28.799999999999997,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496436340.8928,
+      "x": -77.49033217921341,
+      "y": 441.5774721182373,
+      "text": "the docs stay\nat the source",
+      "radiusX": 77.82394409179688,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496467418.9138,
+      "x": -189.97689216638423,
+      "y": 568.5644996670712,
+      "text": "local app on\nlaptop could\ncontrol access",
+      "radiusX": 82.64793395996094,
+      "radiusY": 48,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496489438.9563,
+      "x": 162.83206480069228,
+      "y": 510.5974362682003,
+      "text": "Single A100 machine\n(80GB VRAM) ~$20K",
+      "radiusX": 106.06392669677734,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496626240.1094,
+      "x": -353.74119581220947,
+      "y": 257.09971344050746,
+      "text": "how do you\nrepresent people\nin your group?\nor, groups\nin your group?",
+      "radiusX": 92.42394256591797,
+      "radiusY": 67.2,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496682952.862,
+      "x": 268.20048859787903,
+      "y": -137.0318888355775,
+      "text": "every student writes\na personal profile doc",
+      "radiusX": 111.38390350341797,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496709278.2415,
+      "x": 467.7863127683769,
+      "y": -247.91290226363193,
+      "text": "read a few\nother people's\nprofile docs",
+      "radiusX": 80.50394439697266,
+      "radiusY": 48,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496760608.7595,
+      "x": 656.2840355960698,
+      "y": -154.16804545627693,
+      "text": "meet someone\nrandom. summarize/share\n a few folks you know.",
+      "radiusX": 131.28791046142578,
+      "radiusY": 48,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496817702.389,
+      "x": 616.9757005237484,
+      "y": -50.34108440210409,
+      "text": "make intros",
+      "radiusX": 71.14395141601562,
+      "radiusY": 28.799999999999997,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765496832423.813,
+      "x": 718.748399701132,
+      "y": 83.67821552862954,
+      "text": "people can \nform a\nproto-team if\nthey want",
+      "radiusX": 78.20794677734375,
+      "radiusY": 57.599999999999994,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765497150152.1458,
+      "x": -390.9850988483221,
+      "y": 517.0734716070147,
+      "text": "enables RAG\nvia local fileserver",
+      "radiusX": 95.53591918945312,
+      "radiusY": 38.4,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765497220088.4167,
+      "x": 859.6057096424445,
+      "y": 12.9744880112288,
+      "text": "people keep\ntheir own\nconnection list",
+      "radiusX": 82.31192779541016,
+      "radiusY": 48,
+      "fontSize": 16,
+      "color": "#87CEEB",
+      "font": "Poppins, sans-serif"
+    },
+    {
+      "type": "bubble",
+      "id": 1765587666690,
+      "x": 388,
+      "y": 475,
+      "text": "4x RTX 6000\n machine (~$50K)",
+      "radiusX": 105.25591278076172,
+      "radiusY": 34.2,
+      "color": "#87CEEB",
+      "fontSize": 16
+    },
+    {
+      "type": "bubble",
+      "id": 1765587716790,
+      "x": 668,
+      "y": 396,
+      "text": "Agentic auto-tester",
+      "radiusX": 98.6239242553711,
+      "radiusY": 30,
+      "color": "#87CEEB",
+      "fontSize": 16
+    },
+    {
+      "type": "bubble",
+      "id": 1765587747890,
+      "x": 763,
+      "y": 613,
+      "text": "Generates 500 random\n profiles with made-up\n details.",
+      "radiusX": 235.0797882080078,
+      "radiusY": 43.8,
+      "color": "#87CEEB",
+      "fontSize": 16
+    }
+  ],
+  "connections": [
+    {
+      "id": 1765494434078.4832,
+      "from": 1765294909320.2153,
+      "to": 1765294594034.3794,
+      "weight": 1
+    },
+    {
+      "id": 1765494441348.6497,
+      "from": 1765294576517,
+      "to": 1765294594034.3794,
+      "weight": 1
+    },
+    {
+      "id": 1765494446673.8606,
+      "from": 1765294602097.473,
+      "to": 1765294809296.1116,
+      "weight": 1
+    },
+    {
+      "id": 1765494448502.977,
+      "from": 1765294602097.473,
+      "to": 1765294673060.2288,
+      "weight": 1
+    },
+    {
+      "id": 1765494450323.266,
+      "from": 1765294602097.473,
+      "to": 1765294644848.7979,
+      "weight": 1
+    },
+    {
+      "id": 1765494452288.8262,
+      "from": 1765294602097.473,
+      "to": 1765294629759.8506,
+      "weight": 1
+    },
+    {
+      "id": 1765494468625.3848,
+      "from": 1765294629759.8506,
+      "to": 1765294988714.886,
+      "weight": 1
+    },
+    {
+      "id": 1765494475102.9666,
+      "from": 1765294988714.886,
+      "to": 1765294909320.2153,
+      "weight": 1
+    },
+    {
+      "id": 1765496470953.5842,
+      "from": 1765496436340.8928,
+      "to": 1765496467418.9138,
+      "weight": 1
+    },
+    {
+      "id": 1765496472931.9626,
+      "from": 1765294988714.886,
+      "to": 1765496436340.8928,
+      "weight": 1
+    },
+    {
+      "id": 1765496498548.8352,
+      "from": 1765294629759.8506,
+      "to": 1765496489438.9563,
+      "weight": 1
+    },
+    {
+      "id": 1765496629216.0005,
+      "from": 1765496626240.1094,
+      "to": 1765294909320.2153,
+      "weight": 1
+    },
+    {
+      "id": 1765496687698.3096,
+      "from": 1765294809296.1116,
+      "to": 1765496682952.862,
+      "weight": 1
+    },
+    {
+      "id": 1765496725182.1345,
+      "from": 1765496682952.862,
+      "to": 1765496709278.2415,
+      "weight": 1
+    },
+    {
+      "id": 1765496810416.5635,
+      "from": 1765496709278.2415,
+      "to": 1765496760608.7595,
+      "weight": 1
+    },
+    {
+      "id": 1765496818973.9983,
+      "from": 1765496760608.7595,
+      "to": 1765496817702.389,
+      "weight": 1
+    },
+    {
+      "id": 1765496867488.2605,
+      "from": 1765496817702.389,
+      "to": 1765496832423.813,
+      "weight": 1
+    },
+    {
+      "id": 1765497167178.0835,
+      "from": 1765497150152.1458,
+      "to": 1765496467418.9138,
+      "weight": 1
+    },
+    {
+      "id": 1765497242541.228,
+      "from": 1765496817702.389,
+      "to": 1765497220088.4167,
+      "weight": 1
+    },
+    {
+      "id": 1765587676611.3372,
+      "from": 1765294629759.8506,
+      "to": 1765587666690,
+      "weight": 1
+    },
+    {
+      "id": 1765587721889.317,
+      "from": 1765496682952.862,
+      "to": 1765587716790,
+      "weight": 1
+    }
+  ],
+  "scenes": [],
+  "version": "1.0"
+}

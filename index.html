@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mind Mapper</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/styles/main.css">
+  </head>
+  <body>
+    <!-- Loading indicator -->
+    <div id="loadingIndicator">Loading...</div>
+
+    <!-- Main control panel -->
+    <div id="controls">
+      <button id="undoBtn" title="Undo last action (Ctrl+Z)">↶</button>
+      <button id="redoBtn" disabled title="Redo last action (Ctrl+Y)">↷</button>
+      <button id="addBubbleBtn" title="Add a new bubble. Or, double click on canvas to add bubble.">+💭</button>
+      <button id="addTextBtn" title="Add a text annotation">+✏️</button>
+      <button id="addImageBtn" title="Add an image">+🖼️</button>
+      <button id="zoomExtentsBtn" title="Zoom to fit all content (Z)">⤢ Zoom to Fit</button>
+      <button id="forceLayoutBtn" title="Auto-arrange elements">Auto Layout</button>
+      <button id="revertLayoutBtn" disabled title="Revert to original layout">Revert Layout</button>
+      <button id="newBtn" title="Start a new mindmap (will prompt to save if needed)">🆕 New</button>
+      <button id="saveBtn" title="Save mindmap (Ctrl+S)">💾 Save</button>
+      <button id="bundleBtn" title="Create self-contained bundle">📦 Bundle</button>
+      <button id="loadBtn" title="Load mindmap file">📂 Load</button>
+      <button id="exportGexfBtn" title="Export to GEXF format">🕸️ Export GEXF</button>
+      <input type="file" id="loadFile" accept=".json">
+      <div id="colorPalette"></div>
+      <span>Middle-click on bubbles to connect.</span>
+    </div>
+
+    <!-- Scenes panel -->
+    <div id="scenesPanel">
+      <div id="scenesPlayControls">
+          <button id="largePlayBtn" title="Play scenes" disabled style="display: inline-block;"></button>
+          <button id="largeStopBtn" title="Stop scenes" style="display: none;"></button>
+      </div>
+      <div id="scenesHeader">
+          <h3>Scenes</h3>
+          <button id="toggleScenesBtn" title="Expand/Collapse scenes panel">▼</button>
+      </div>
+      <div id="scenesList"></div>
+      <div id="scenesControls">
+          <button id="addSceneBtn">Add Scene</button>
+          <button id="removeSceneBtn" disabled>Remove Scene</button>
+          <button id="playScenesBtn" disabled>▶️ Play</button>
+      </div>
+      <div id="countdownTimer" style="display: none; text-align: center; margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: #666;">
+          <span id="countdownText">Next scene in: <span id="countdownValue">5</span>s</span>
+      </div>
+    </div>
+
+    <!-- Help button -->
+    <button id="helpBtn">?</button>
+
+    <!-- Help modal -->
+    <div id="helpModal">
+        <div class="modal-content">
+            <h2>Mind Map Help</h2>
+            <h4>Mouse Controls</h4>
+            <ul>
+                <li><b>Connect Bubbles:</b> <b>Middle-click</b> a bubble, drag, and <b>middle-click</b> another bubble.</li>
+                <li><b>Pan:</b> <b>Left-click</b> and drag on the empty canvas.</li>
+                <li><b>Zoom:</b> Use the mouse scroll wheel.</li>
+                <li><b>Move Element:</b> <b>Left-click</b> and drag any element.</li>
+                <li><b>Label Connection:</b> Double-left-click on a connection line.</li>
+                <li><b>Quick Add Bubble:</b> Double-left-click on the empty canvas to open text input.</li>
+                <li><b>Context Menu:</b> <b>Right-click</b> on an element for more options.</li>
+            </ul>
+            <h4>Keyboard Shortcuts</h4>
+            <ul>
+                <li><kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd> - Undo last action.</li>
+                <li><kbd>Ctrl/Cmd</kbd> + <kbd>Y</kbd> - Redo last action.</li>
+                <li><kbd>B</kbd> - Add a new bubble.</li>
+                <li><kbd>A</kbd> - Add a new annotation.</li>
+                <li><kbd>I</kbd> - Add a new image.</li>
+                <li><kbd>Z</kbd> - Zoom to fit all content.</li>
+                <li><kbd>Delete</kbd> / <kbd>Backspace</kbd> - Delete selected element.</li>
+                <li><kbd>+</kbd> / <kbd>-</kbd> - Enlarge/shrink selected element.</li>
+                <li><kbd>Ctrl/Cmd</kbd> + <kbd>C</kbd> - Copy selected element.</li>
+                <li><kbd>Ctrl/Cmd</kbd> + <kbd>V</kbd> - Paste element.</li>
+                <li><kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd> - Save mind map to a file.</li>
+            </ul>
+            <button class="close-modal-btn" style="float: right;">Close</button>
+        </div>
+    </div>
+    
+    <!-- Comment modal -->
+    <div id="commentModal">
+        <div class="modal-content">
+            <h2>Comment</h2>
+            <p id="commentDisplay"></p>
+            <button class="close-modal-btn" style="float: right;">Close</button>
+        </div>
+    </div>
+
+    <!-- Context menu -->
+    <div id="contextMenu" style="display: none;">
+        <button id="addBubbleContextBtn" style="display: none;">Add Bubble</button>
+        <button id="addAnnotationContextBtn" style="display: none;">Add Annotation</button>
+        <button id="addImageContextBtn" style="display: none;">Add Image</button>
+        <hr id="elementSeparator" style="display: none;">
+        <button id="growBtn" style="display: block;">Grow</button>
+        <button id="shrinkBtn" style="display: block;">Shrink</button>
+        <hr id="sizeSeparator" style="display: block;">
+        <button id="commentBtn" style="display: block;">Add/Edit Comment</button>
+        <button id="viewCommentBtn" style="display: none;">View Comment</button>
+        <hr id="linkSeparator" style="display: block;">
+        <button id="linkBtn" style="display: block;">Add/Edit Link</button>
+        <button id="openLinkBtn" style="display: none;">Open Link</button>
+        <hr id="deleteSeparator" style="display: block;">
+        <button id="deleteBtn" style="display: block;">Delete</button>
+    </div>
+
+    <!-- Scene name overlay -->
+    <div id="sceneNameOverlay">
+        <span id="currentSceneName"></span>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="canvas" tabindex="0"></canvas>
+    
+    <!-- Hidden text input -->
+    <textarea id="textInput"></textarea>
+
+    <!-- Main Entry Point -->
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

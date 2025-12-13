@@ -1,0 +1,56 @@
+{
+    "elements": [
+        {
+            "id": "bubble_1",
+            "type": "bubble",
+            "x": 100,
+            "y": 100,
+            "width": 100,
+            "height": 50,
+            "text": "Existing Bubble",
+            "radiusX": 50,
+            "radiusY": 25
+        },
+        {
+            "id": "text_1",
+            "type": "text",
+            "x": 300,
+            "y": 100,
+            "width": 100,
+            "height": 30,
+            "text": "Text Annotation"
+        },
+        {
+            "id": "image_1",
+            "type": "image",
+            "x": 500,
+            "y": 100,
+            "width": 100,
+            "height": 100,
+            "text": "Image Placeholder",
+            "url": "placeholder.png"
+        },
+        {
+            "id": "bubble_linked",
+            "type": "bubble",
+            "x": 100,
+            "y": 300,
+            "width": 100,
+            "height": 50,
+            "text": "Linked Bubble",
+            "link": "https://google.com",
+            "radiusX": 50,
+            "radiusY": 25
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_1",
+            "from": "bubble_1",
+            "to": "bubble_linked",
+            "weight": 1
+        }
+    ],
+    "scenes": [],
+    "version": "1.0"
+}
