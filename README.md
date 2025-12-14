@@ -1,6 +1,6 @@
 # Mind Mapper
 
-A modern, web-based mind mapping application built with Vanilla JavaScript and Vite.
+A simple, web-based mind mapping application built with Vanilla JavaScript and Vite.
 
 ![Mind Mapper Screenshot](screenshot.png)
 
@@ -85,6 +85,30 @@ npm test
 - `src/view`: Canvas rendering and UI components.
 - `src/controller`: Input handling (mouse/keyboard).
 - `src/io`: Persistence and file handling.
+
+## Developer Guide
+
+We follow a strict **Test-Driven Development (TDD)** workflow to ensure stability and prevent regressions.
+
+### Best Practices
+
+1.  **Red-Green-Refactor**:
+    *   **Red**: Write a failing test for the new feature or bug fix *first*.
+    *   **Green**: Write the minimal code necessary to make the test pass.
+    *   **Refactor**: Clean up the code while ensuring tests stay green.
+2.  **Mocking**: Use `vitest` mocks for dependencies (Renderer, InputHandler) to isolate unit logic. Avoid relying on global state in unit tests.
+3.  **Pre-commit Hook**:
+    *   We use `husky` to run `scripts/pre-commit.sh` before every commit.
+    *   This script runs the **full test suite** and the **production build**.
+    *   **Do not bypass this hook** (e.g., avoid `git commit --no-verify`) unless absolutely necessary.
+4.  **Running Tests**:
+    *   `npm test`: Runs Vitest in watch mode (for development).
+    *   `npm run test:run`: Runs all tests once (used by CI/Hooks).
+5.  **Artifacts**: Keep `task.md` and `implementation_plan.md` updated in the `brain` directory (if using the AI assistant workflow).
+
+### Key Commands
+
+- **Verify All**: `./scripts/pre-commit.sh` - Runs tests and build manually.
 
 ## License
 
