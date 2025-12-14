@@ -75,12 +75,6 @@ export class UIManager {
             }
         });
 
-        // Auto Layout
-        bind('forceLayoutBtn', () => {
-            // TODO: Implement force directed layout algorithm
-            console.log('Auto Layout triggered');
-            // this.model.applyLayout(); 
-        });
 
         // Revert Layout
         bind('revertLayoutBtn', () => {

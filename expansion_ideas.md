@@ -89,9 +89,17 @@ Improve the "Scenes" presentation mode.
 - **Drag-to-Reposition**: Add drag handles to scene list items to reorder them easily.
 - **Single-Step Mode**: Add a "Step Forward" button/icon. When "Play" is active, this should be disabled.
 - **Scene Notes**: Add a text area for each scene to store presenter notes or long-form comments.
+- **Scene UI Improvements**:
+    - **Wider Panel**: Increase width of Scenes panel.
+    - **Ellipsis**: Truncate long scene names with ellipsis if they exceed space.
+    - **Hover Tooltip**: Show full name on hover.
+    - **Context Menu**: Right-click on scene for "Change Timing", "Edit Name", "Delete".
 
 ## 5. Media Integration
 - **Add Images**: (Currently broken/disabled). Re-implement the ability to add images to the canvas, potentially via Drag & Drop or a file picker.
+
+## 6. Layout Algorithms
+- **Auto Layout**: (Button removed). Implement a force-directed layout algorithm to automatically arrange bubbles.
 
 ---
 
