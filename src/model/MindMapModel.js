@@ -24,8 +24,22 @@ export class MindMapModel {
         /** @type {boolean} Flag indicating if there are unsaved changes */
         this.hasUnsavedChanges = false;
 
+        /** @type {Object} Event listeners */
+        this.listeners = {};
+
         // Save initial state
         this.saveState();
+    }
+
+    on(event, callback) {
+        if (!this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event].push(callback);
+    }
+
+    emit(event, payload) {
+        if (this.listeners[event]) {
+            this.listeners[event].forEach(cb => cb(payload));
+        }
     }
 
     /**
@@ -96,6 +110,7 @@ export class MindMapModel {
         this.history.push(currentState);
         this.historyIndex++;
         this.hasUnsavedChanges = true;
+        this.emit('historyChange', { index: this.historyIndex, length: this.history.length });
     }
 
     /**
@@ -105,6 +120,7 @@ export class MindMapModel {
         if (this.historyIndex > 0) {
             this.historyIndex--;
             this.restoreState(this.history[this.historyIndex]);
+            this.emit('historyChange', { index: this.historyIndex, length: this.history.length });
         }
     }
 
@@ -115,6 +131,7 @@ export class MindMapModel {
         if (this.historyIndex < this.history.length - 1) {
             this.historyIndex++;
             this.restoreState(this.history[this.historyIndex]);
+            this.emit('historyChange', { index: this.historyIndex, length: this.history.length });
         }
     }
 
@@ -197,11 +214,5 @@ export class MindMapModel {
         return xml;
     }
 
-    /* (IDEA) 2025-12-12
-     * Summary: Spatial Indexing (Quadtree)
-     * Improvement: For large mindmaps (1000+ nodes), finding elements by click (hit testing)
-     * iterates the entire array. Implementing a Quadtree would reduce complexity from O(N) to O(logN).
-     * Test Plan: Generate 10,000 nodes, benchmark hit-test performance before/after.
-     * Benefit: Smoother interaction on massive maps.
-     */
+
 }

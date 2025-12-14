@@ -260,50 +260,24 @@ input[type="file"] {
     display: none;
 }
 
-/* Large play/stop button for collapsed panel */
+#largePlayBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 2px 5px;
+    margin: 0 5px;
+    transition: transform 0.2s ease;
+    display: none;
+    /* Controlled by Js (setupScenesPanel logic might override or class .collapsed) */
+}
+
+/* Ensure it shows when panel is collapsed or inline-block set by JS */
 #scenesPanel.collapsed #largePlayBtn {
     display: inline-block;
 }
 
-#scenesPanel.collapsed #largeStopBtn {
-    display: inline-block;
-}
-
-#largePlayBtn,
-#largeStopBtn {
-    margin-left: 10px;
-    width: 0;
-    height: 0;
-    border: none;
-    cursor: pointer;
-    display: none;
-    transition: all 0.2s ease;
-    vertical-align: middle;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-#largePlayBtn {
-    border-left: 12px solid #28a745;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    margin-right: 5px;
-}
-
-#largeStopBtn {
-    width: 16px;
-    height: 16px;
-    background-color: #dc3545;
-    border-radius: 0;
-}
-
 #largePlayBtn:hover {
-    border-left-color: #218838;
-    transform: scale(1.1);
-}
-
-#largeStopBtn:hover {
-    background-color: #c82333;
     transform: scale(1.1);
 }
 

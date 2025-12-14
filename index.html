@@ -1,58 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mind Mapper</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="./src/styles/main.css">
-  </head>
-  <body>
+</head>
+
+<body>
     <!-- Loading indicator -->
     <div id="loadingIndicator">Loading...</div>
 
     <!-- Main control panel -->
     <div id="controls">
-      <button id="undoBtn" title="Undo last action (Ctrl+Z)">↶</button>
-      <button id="redoBtn" disabled title="Redo last action (Ctrl+Y)">↷</button>
-      <button id="addBubbleBtn" title="Add a new bubble. Or, double click on canvas to add bubble.">+💭</button>
-      <button id="addTextBtn" title="Add a text annotation">+✏️</button>
-      <button id="addImageBtn" title="Add an image">+🖼️</button>
-      <button id="zoomExtentsBtn" title="Zoom to fit all content (Z)">⤢ Zoom to Fit</button>
-      <button id="forceLayoutBtn" title="Auto-arrange elements">Auto Layout</button>
-      <button id="revertLayoutBtn" disabled title="Revert to original layout">Revert Layout</button>
-      <button id="newBtn" title="Start a new mindmap (will prompt to save if needed)">🆕 New</button>
-      <button id="saveBtn" title="Save mindmap (Ctrl+S)">💾 Save</button>
-      <button id="bundleBtn" title="Create self-contained bundle">📦 Bundle</button>
-      <button id="loadBtn" title="Load mindmap file">📂 Load</button>
-      <button id="exportGexfBtn" title="Export to GEXF format">🕸️ Export GEXF</button>
-      <input type="file" id="loadFile" accept=".json">
-      <div id="colorPalette"></div>
-      <span>Middle-click on bubbles to connect.</span>
+        <button id="undoBtn" title="Undo last action (Ctrl+Z)">↶</button>
+        <button id="redoBtn" disabled title="Redo last action (Ctrl+Y)">↷</button>
+        <button id="addBubbleBtn" title="Add a new bubble. Or, double click on canvas to add bubble.">+💭</button>
+        <button id="addTextBtn" title="Add a text annotation">+✏️</button>
+        <button id="addImageBtn" title="Add an image">+🖼️</button>
+        <button id="zoomExtentsBtn" title="Zoom to fit all content (Z)">⤢ Zoom to Fit</button>
+        <button id="forceLayoutBtn" title="Auto-arrange elements">Auto Layout</button>
+        <button id="revertLayoutBtn" disabled title="Revert to original layout">Revert Layout</button>
+        <button id="newBtn" title="Start a new mindmap (will prompt to save if needed)">🆕 New</button>
+        <button id="saveBtn" title="Save mindmap (Ctrl+S)">💾 Save</button>
+        <button id="bundleBtn" title="Create self-contained bundle">📦 Bundle</button>
+        <button id="loadBtn" title="Load mindmap file">📂 Load</button>
+        <button id="exportGexfBtn" title="Export to GEXF format">🕸️ Export GEXF</button>
+        <input type="file" id="loadFile" accept=".json">
+        <div id="colorPalette"></div>
+        <span>Middle-click on bubbles to connect.</span>
     </div>
 
     <!-- Scenes panel -->
     <div id="scenesPanel">
-      <div id="scenesPlayControls">
-          <button id="largePlayBtn" title="Play scenes" disabled style="display: inline-block;"></button>
-          <button id="largeStopBtn" title="Stop scenes" style="display: none;"></button>
-      </div>
-      <div id="scenesHeader">
-          <h3>Scenes</h3>
-          <button id="toggleScenesBtn" title="Expand/Collapse scenes panel">▼</button>
-      </div>
-      <div id="scenesList"></div>
-      <div id="scenesControls">
-          <button id="addSceneBtn">Add Scene</button>
-          <button id="removeSceneBtn" disabled>Remove Scene</button>
-          <button id="playScenesBtn" disabled>▶️ Play</button>
-      </div>
-      <div id="countdownTimer" style="display: none; text-align: center; margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: #666;">
-          <span id="countdownText">Next scene in: <span id="countdownValue">5</span>s</span>
-      </div>
+        <div id="scenesPlayControls">
+            <button id="largePlayBtn" title="Play scenes" disabled style="display: inline-block;">▶️</button>
+        </div>
+        <div id="scenesHeader">
+            <h3>Scenes</h3>
+            <button id="toggleScenesBtn" title="Expand/Collapse scenes panel">▼</button>
+        </div>
+        <div id="scenesList"></div>
+        <div id="scenesControls">
+            <button id="addSceneBtn">Add Scene</button>
+        </div>
+        <div id="countdownTimer"
+            style="display: none; text-align: center; margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 14px; color: #666;">
+            <span id="countdownText">Next scene in: <span id="countdownValue">5</span>s</span>
+        </div>
     </div>
 
     <!-- Help button -->
@@ -64,7 +66,8 @@
             <h2>Mind Map Help</h2>
             <h4>Mouse Controls</h4>
             <ul>
-                <li><b>Connect Bubbles:</b> <b>Middle-click</b> a bubble, drag, and <b>middle-click</b> another bubble.</li>
+                <li><b>Connect Bubbles:</b> <b>Middle-click</b> a bubble, drag, and <b>middle-click</b> another bubble.
+                </li>
                 <li><b>Pan:</b> <b>Left-click</b> and drag on the empty canvas.</li>
                 <li><b>Zoom:</b> Use the mouse scroll wheel.</li>
                 <li><b>Move Element:</b> <b>Left-click</b> and drag any element.</li>
@@ -89,13 +92,19 @@
             <button class="close-modal-btn" style="float: right;">Close</button>
         </div>
     </div>
-    
+
     <!-- Comment modal -->
     <div id="commentModal">
         <div class="modal-content">
             <h2>Comment</h2>
             <p id="commentDisplay"></p>
-            <button class="close-modal-btn" style="float: right;">Close</button>
+            <textarea id="commentEditInput"
+                style="display: none; width: 100%; height: 100px; margin-bottom: 10px; font-family: 'Inter', sans-serif;"></textarea>
+            <div style="text-align: right;">
+                <button id="editCommentBtn" title="Edit Comment">✏️</button>
+                <button id="saveCommentBtn" style="display: none;" title="Save Comment">💾</button>
+                <button class="close-modal-btn">Close</button>
+            </div>
         </div>
     </div>
 
@@ -124,11 +133,12 @@
 
     <!-- Canvas -->
     <canvas id="canvas" tabindex="0"></canvas>
-    
+
     <!-- Hidden text input -->
     <textarea id="textInput"></textarea>
 
     <!-- Main Entry Point -->
     <script type="module" src="./src/main.js"></script>
-  </body>
+</body>
+
 </html>

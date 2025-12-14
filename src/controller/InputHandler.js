@@ -57,6 +57,12 @@ export class InputHandler {
         if (e.button === 0) {
             const result = this.hitTest(pos.x, pos.y);
 
+            // Shift+Click on bubble -> Connect
+            if (e.shiftKey && result.type === 'element' && result.element.type === 'bubble') {
+                this.handleConnectionStart(pos);
+                return;
+            }
+
             if (result.type === 'resizeHandle') {
                 this.resizingElement = result.element;
                 this.resizeHandle = result.handle;
@@ -85,6 +91,7 @@ export class InputHandler {
             }
             this.connectionStartElement = null;
             this.canvas.classList.remove('connecting');
+            this.renderer.setTempConnection(null, 0, 0); // Clear temp line
         } else {
             // Start connection
             if (result.type === 'element' && result.element.type === 'bubble') {
@@ -99,29 +106,9 @@ export class InputHandler {
         this.lastMousePosition = { x: e.clientX, y: e.clientY };
 
         if (this.connectionStartElement) {
-            // Draw temp line (ideally handled by renderer using a state flag)
-            // For simplicity, we just trigger a redraw and let renderer handle it if we passed the temp state
-            // Currently Renderer doesn't support temp line drawing in its public API easily without state injection.
-            // Let's implement a 'tempConnection' property on renderer or similar.
-            // Simplest: direct context access here or modify render
-            this.renderer.draw();
-
-            // Draw temp line overlay manually (cleaner integration later)
-            const ctx = this.renderer.ctx;
-            const startEl = this.connectionStartElement;
             const worldMouse = this.renderer.screenToWorld(e.clientX, e.clientY);
-
-            ctx.save();
-            ctx.scale(this.renderer.cameraZoom, this.renderer.cameraZoom);
-            ctx.translate(this.renderer.cameraOffset.x / this.renderer.cameraZoom, this.renderer.cameraOffset.y / this.renderer.cameraZoom);
-
-            ctx.beginPath();
-            ctx.moveTo(startEl.x, startEl.y);
-            ctx.lineTo(worldMouse.x, worldMouse.y);
-            ctx.strokeStyle = '#007bff';
-            ctx.setLineDash([5, 5]);
-            ctx.stroke();
-            ctx.restore();
+            this.renderer.setTempConnection(this.connectionStartElement, worldMouse.x, worldMouse.y);
+            this.renderer.draw();
             return;
         }
 
@@ -155,7 +142,39 @@ export class InputHandler {
             case 'top-left': el.x += worldDx; el.y += worldDy; el.width -= worldDx; el.height -= worldDy; break;
             // ... handle other cases
         }
-        // Simplified for brevity, need full implementation
+    }
+
+    handleResizeShortcut(direction) {
+        const selected = this.model.selectedElement;
+        if (!selected) return;
+
+        // Bubble or Text Element
+        if (selected.x !== undefined) {
+            // Font Size (Both Bubble and Text)
+            if (selected.fontSize) {
+                selected.fontSize = Math.max(8, selected.fontSize + (direction * 2));
+                // Update font string safely
+                // Ensure we keep the font family if possible, or default to 'Poppins'
+                let fontFamily = 'Poppins';
+                if (selected.font) {
+                    // Try to preserve existing family
+                    const match = selected.font.match(/px\s+(.*)$/);
+                    if (match && match[1]) fontFamily = match[1];
+                }
+                selected.font = `${selected.fontSize}px ${fontFamily}`;
+            }
+
+            // Bubble Specific (Radius)
+            // Radius is calculated automatically by CanvasRenderer.drawBubble based on text size
+            // So we don't need to manually scale it here.
+        }
+        // Connection
+        else if (selected.from !== undefined) {
+            selected.weight = Math.max(1, (selected.weight || 1) + direction);
+        }
+
+        this.model.saveState();
+        this.renderer.draw();
     }
 
     handleMouseUp(e) {
@@ -263,8 +282,19 @@ export class InputHandler {
                     this.model.removeElement(this.model.selectedElement.id);
                     this.model.selectedElement = null;
                     this.renderer.draw();
+                } else if (this.model.selectedElement.from) {
+                    // It's a connection
+                    this.model.removeConnection(this.model.selectedElement.id);
+                    this.model.selectedElement = null;
+                    this.renderer.draw();
                 }
             }
+        }
+
+        // Resize Shortcuts (+ / -)
+        if (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_') {
+            const isGrow = (e.key === '=' || e.key === '+');
+            this.handleResizeShortcut(isGrow ? 1 : -1);
         }
     }
 
@@ -292,8 +322,20 @@ export class InputHandler {
                 if ((dx * dx) / (el.radiusX * el.radiusX) + (dy * dy) / (el.radiusY * el.radiusY) <= 1) {
                     return { type: 'element', element: el };
                 }
+            } else if (el.type === 'text' || el.type === 'image') {
+                // Rectangular hit test
+                // Defaults if width/height missing (e.g. before first draw)
+                const w = el.width || 50;
+                const h = el.height || 20;
+                if (
+                    worldPos.x >= el.x &&
+                    worldPos.x <= el.x + w &&
+                    worldPos.y >= el.y &&
+                    worldPos.y <= el.y + h
+                ) {
+                    return { type: 'element', element: el };
+                }
             }
-            // ... text/image checks ...
         }
 
         // Check connections

@@ -7,6 +7,7 @@ export class PersistenceManager {
     constructor(model, renderer, uiManager) {
         this.model = model;
         this.renderer = renderer;
+        this.uiManager = uiManager;
 
         this.setupHandlers();
     }
@@ -29,6 +30,9 @@ export class PersistenceManager {
                 const decodedData = decodeURIComponent(escape(atob(window.embeddedDataEncoded)));
                 const data = JSON.parse(decodedData);
                 this.model.restoreState(data, true);
+                if (this.uiManager && this.uiManager.renderScenesList) {
+                    this.uiManager.renderScenesList();
+                }
                 console.log('Embedded data loaded.');
             } catch (e) {
                 console.error('Error loading embedded data:', e);
@@ -54,6 +58,9 @@ export class PersistenceManager {
             try {
                 const data = JSON.parse(ev.target.result);
                 this.model.restoreState(data, true);
+                if (this.uiManager && this.uiManager.renderScenesList) {
+                    this.uiManager.renderScenesList();
+                }
                 this.renderer.draw();
             } catch (err) {
                 alert('Invalid file');

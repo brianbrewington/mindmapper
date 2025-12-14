@@ -24,6 +24,7 @@ export class CanvasRenderer {
         this.MIN_ZOOM = 0.1;
 
         this.imageCache = new Map();
+        this.tempConnection = null;
 
         // Handle resizing
         window.addEventListener('resize', () => this.draw());
@@ -50,10 +51,10 @@ export class CanvasRenderer {
         // Draw Elements
         this.model.elements.forEach(el => this.drawElement(el));
 
-        // Draw Temp Connection Line (if dragging a connection)
-        // Note: This state might be passed in or stored in controller
-        // For now, we'll assume the controller handles the temporary line 
-        // or calls a specific method here.
+        // Draw Temp Connection Line
+        if (this.tempConnection) {
+            this.drawTempConnection(this.tempConnection);
+        }
 
         ctx.restore();
     }
@@ -68,7 +69,7 @@ export class CanvasRenderer {
 
         if (!from || !to) return;
 
-        // Check selection state (hacky for now, ideally passed in)
+        // TODO: Pass selection state explicitly to decouple renderer from model internals
         const isSelected = (this.model.selectedElement && this.model.selectedElement.id === conn.id);
 
         const ctx = this.ctx;
@@ -119,7 +120,9 @@ export class CanvasRenderer {
 
     drawBubble(el, ctx) {
         // Calculate required size based on text
-        ctx.font = `${el.fontSize}px ${el.font || 'Poppins'}`;
+        // Fix: Use el.font directly if it looks like a full font string
+        // Otherwise fallback to constructing it
+        ctx.font = el.font && el.font.includes('px') ? el.font : `${el.fontSize}px ${el.font || 'Poppins'}`;
         const lines = el.text.split('\n');
         let maxWidth = 0;
         lines.forEach(line => {
@@ -145,8 +148,10 @@ export class CanvasRenderer {
         // This allows shrinking when text is reduced/broken into lines.
         // Ideally we would track if "manually resized" but for now autosizing is primary.
         // Also adding 5% extra breathing room
-        el.radiusX = Math.max(50, requiredRadiusX * 1.05);
-        el.radiusY = Math.max(30, requiredRadiusY * 1.05);
+        // Also adding 5% extra breathing room
+        // Allow shrinking below 50/30 if text is small. Use a smaller absolute min (e.g. 10) to avoid invisibility.
+        el.radiusX = Math.max(10, requiredRadiusX * 1.05);
+        el.radiusY = Math.max(10, requiredRadiusY * 1.05);
 
         ctx.beginPath();
         ctx.ellipse(el.x, el.y, el.radiusX, el.radiusY, 0, 0, 2 * Math.PI);
@@ -171,15 +176,19 @@ export class CanvasRenderer {
     }
 
     drawText(el, ctx, isSelected) {
-        ctx.font = el.font;
+        ctx.font = el.font && el.font.includes('px') ? el.font : `${el.fontSize || 16}px ${el.font || 'Poppins'}`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillStyle = el.color || '#000'; // Ensure color is set
         ctx.fillText(el.text, el.x, el.y);
 
+        const textWidth = ctx.measureText(el.text).width;
+        const textHeight = parseInt(el.font, 10); // A bit hacky but works for simple "16px ..." strings
+        el.width = textWidth;
+        el.height = textHeight;
+
         if (isSelected) {
-            const textWidth = ctx.measureText(el.text).width;
-            const textHeight = parseInt(el.font, 10);
+            ctx.strokeStyle = '#007bff'; // Hardcoded selected color
             ctx.strokeRect(el.x - 2, el.y - 2, textWidth + 4, textHeight + 4);
         }
     }
@@ -332,5 +341,34 @@ export class CanvasRenderer {
             x: x * this.cameraZoom + this.cameraOffset.x,
             y: y * this.cameraZoom + this.cameraOffset.y
         };
+    }
+
+    /**
+     * Sets the temporary connection line state.
+     * @param {Object|null} startElement 
+     * @param {number} worldX 
+     * @param {number} worldY 
+     */
+    setTempConnection(startElement, worldX, worldY) {
+        if (!startElement) {
+            this.tempConnection = null;
+        } else {
+            this.tempConnection = { start: startElement, end: { x: worldX, y: worldY } };
+        }
+    }
+
+    /**
+     * Draws the temporary connection line.
+     * @param {Object} temp 
+     */
+    drawTempConnection(temp) {
+        const ctx = this.ctx;
+        ctx.beginPath();
+        ctx.moveTo(temp.start.x, temp.start.y);
+        ctx.lineTo(temp.end.x, temp.end.y);
+        ctx.strokeStyle = '#007bff';
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset dash
     }
 }

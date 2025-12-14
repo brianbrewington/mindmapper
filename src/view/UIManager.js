@@ -9,7 +9,27 @@ export class UIManager {
         this.inputHandler = inputHandler;
 
         this.setupToolbar();
+        this.setupScenesPanel();
+        this.setupCommentModal();
         this.setupGlobalEvents();
+
+        // Listen to Model changes
+        if (this.model.on) {
+            this.model.on('historyChange', this.updateUndoRedoButtons.bind(this));
+        }
+        this.updateUndoRedoButtons(); // Initial check
+    }
+
+    updateUndoRedoButtons() {
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+
+        if (undoBtn) {
+            undoBtn.disabled = this.model.historyIndex <= 0;
+        }
+        if (redoBtn) {
+            redoBtn.disabled = this.model.historyIndex >= this.model.history.length - 1;
+        }
     }
 
     setupToolbar() {
@@ -21,12 +41,13 @@ export class UIManager {
         // Add Bubble
         bind('addBubbleBtn', () => {
             const center = this.renderer.screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
-            this.showInputAt(center.x, center.y);
+            this.showInputAt(center.x, center.y, '', null, 'bubble');
         });
 
         // Add Text
         bind('addTextBtn', () => {
-            // ... implementation
+            const center = this.renderer.screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+            this.showInputAt(center.x, center.y, '', null, 'text');
         });
 
         // Zoom Extents
@@ -56,7 +77,7 @@ export class UIManager {
 
         // Auto Layout
         bind('forceLayoutBtn', () => {
-            // Placeholder for force layout (requires d3 or custom algo)
+            // TODO: Implement force directed layout algorithm
             console.log('Auto Layout triggered');
             // this.model.applyLayout(); 
         });
@@ -100,13 +121,89 @@ export class UIManager {
             });
         });
 
+
         // Scenes
         // Check if scene buttons exist (might be hidden or missing in some views)
-        const addSceneBtn = document.getElementById('addSceneBtn');
-        if (addSceneBtn) {
-            this.setupScenesPanel();
-        }
+        // Removed: setupScenesPanel and setupCommentModal are called in constructor.
+        this.updateUndoRedoButtons();
+        this.setupColorPalette();
+    }
 
+    setupColorPalette() {
+        const paletteContainer = document.getElementById('colorPalette');
+        if (!paletteContainer) return;
+
+        // Define palette colors
+        const colors = [
+            '#ffffff', // White
+            '#ffcccc', // Light Red
+            '#ccffcc', // Light Green
+            '#ccccff', // Light Blue
+            '#ffffcc', // Light Yellow
+            '#ffccff', // Light Purple
+            '#ccffff', // Light Cyan
+        ];
+
+        paletteContainer.innerHTML = '';
+        colors.forEach(color => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = color;
+            swatch.title = color;
+
+            swatch.onclick = (e) => {
+                // Prevent bubbling if necessary, though it's in a toolbar
+                e.stopPropagation();
+
+                // Update selected element if it's a bubble
+                if (this.model.selectedElement && this.model.selectedElement.type === 'bubble') {
+                    this.model.updateElement(this.model.selectedElement.id, { color: color });
+                    this.renderer.draw();
+                } else if (!this.model.selectedElement) {
+                    // Optional: Set default color for NEW bubbles? 
+                    // For now just for selected element as per bug report "When a bubble is selected..."
+                }
+            };
+
+            paletteContainer.appendChild(swatch);
+        });
+    }
+
+    setupCommentModal() {
+        const modal = document.getElementById('commentModal');
+        const display = document.getElementById('commentDisplay');
+        const input = document.getElementById('commentEditInput');
+        const editBtn = document.getElementById('editCommentBtn');
+        const saveBtn = document.getElementById('saveCommentBtn');
+
+        // Edit Mode
+        editBtn.addEventListener('click', () => {
+            display.style.display = 'none';
+            input.style.display = 'block';
+            input.value = display.innerText === '(No comment)' ? '' : display.innerText;
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            input.focus();
+        });
+
+        // Save
+        saveBtn.addEventListener('click', () => {
+            if (this.commentTarget) {
+                const text = input.value.trim();
+                this.commentTarget.comment = text;
+                this.model.saveState();
+                this.renderer.draw();
+
+                // Update Display
+                display.innerText = text || '(No comment)';
+
+                // Reset UI
+                display.style.display = 'block';
+                input.style.display = 'none';
+                editBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+            }
+        });
     }
 
     setupGlobalEvents() {
@@ -198,7 +295,7 @@ export class UIManager {
             ADD_BUBBLE: {
                 id: 'action-add-bubble', label: 'Add Bubble Here', icon: '\uD83D\uDCAD',
                 action: () => {
-                    this.showInputAt(detail.worldX, detail.worldY);
+                    this.showInputAt(detail.worldX, detail.worldY, '', null, 'bubble');
                 }
             },
             COMMENT: {
@@ -207,10 +304,15 @@ export class UIManager {
                     document.getElementById('commentModal').style.display = 'flex';
                     const target = getTarget();
                     const comment = target.comment || '';
-                    document.getElementById('commentDisplay').innerText = comment || '(No comment)';
-                    // We need to know WHICH element/connection we are commenting on.
-                    // The modal currently doesn't store the target reference securely.
-                    // We should store it on the modal or UIManager
+                    const display = document.getElementById('commentDisplay');
+
+                    // Reset State
+                    display.innerText = comment || '(No comment)';
+                    display.style.display = 'block';
+                    document.getElementById('commentEditInput').style.display = 'none';
+                    document.getElementById('editCommentBtn').style.display = 'inline-block';
+                    document.getElementById('saveCommentBtn').style.display = 'none';
+
                     this.commentTarget = target;
                 }
             },
@@ -279,7 +381,7 @@ export class UIManager {
         }
     }
 
-    showInputAt(worldX, worldY, initialText = '', editingElement = null) {
+    showInputAt(worldX, worldY, initialText = '', editingElement = null, type = 'bubble') {
         const input = document.getElementById('textInput');
         // Convert world to screen for positioning
         const screenPos = this.renderer.worldToScreen(worldX, worldY);
@@ -305,10 +407,25 @@ export class UIManager {
                     // Trigger redraw
                     this.renderer.draw();
                 } else {
-                    this.model.addElement({
-                        type: 'bubble', id: Date.now(), x: worldX, y: worldY, text: text,
-                        radiusX: 50, radiusY: 30, color: '#87CEEB', fontSize: 16
-                    });
+                    const newElement = {
+                        id: Date.now(), x: worldX, y: worldY, text: text,
+                        fontSize: 16, font: '16px Poppins' // Shared defaults
+                    };
+
+                    if (type === 'bubble') {
+                        Object.assign(newElement, {
+                            type: 'bubble',
+                            radiusX: 50, radiusY: 30, // Default, will auto-size
+                            color: '#87CEEB'
+                        });
+                    } else if (type === 'text') {
+                        Object.assign(newElement, {
+                            type: 'text',
+                            color: '#000000'
+                        });
+                    }
+
+                    this.model.addElement(newElement);
                     this.renderer.draw();
                 }
             }
@@ -351,37 +468,13 @@ export class UIManager {
             });
         }
 
-        const playBtn = document.getElementById('playScenesBtn');
         const largePlayBtn = document.getElementById('largePlayBtn');
-        const largeStopBtn = document.getElementById('largeStopBtn');
-
-        if (playBtn) {
-            playBtn.addEventListener('click', () => {
-                if (this.isPlaying) this.stopPlayback();
-                else this.playScenes();
-            });
-        }
-
-        if (largePlayBtn) largePlayBtn.addEventListener('click', () => this.playScenes());
-        if (largeStopBtn) largeStopBtn.addEventListener('click', () => this.stopPlayback());
-
-        // Remove Scene Button
-        const removeSceneBtn = document.getElementById('removeSceneBtn');
-        if (removeSceneBtn) {
-            removeSceneBtn.addEventListener('click', () => {
-                const selected = document.querySelector('.scene-item.selected');
-                if (selected) {
-                    const list = document.getElementById('scenesList');
-                    const index = Array.from(list.children).indexOf(selected);
-                    if (index >= 0 && index < this.model.scenes.length) {
-                        const name = this.model.scenes[index].name;
-                        if (confirm(`Delete scene "${name}"?`)) {
-                            this.model.scenes.splice(index, 1);
-                            this.model.saveState();
-                            this.renderScenesList();
-                            this.updateSceneButtons();
-                        }
-                    }
+        if (largePlayBtn) {
+            largePlayBtn.addEventListener('click', () => {
+                if (this.isPlaying) {
+                    this.stopPlayback();
+                } else {
+                    this.playScenes();
                 }
             });
         }
@@ -399,13 +492,25 @@ export class UIManager {
     playScenes() {
         if (this.model.scenes.length === 0) return;
         this.isPlaying = true;
-        this.updateSceneButtons();
+        this.updateSceneButtons(); // This will flip the icon to stop
 
+        // Start from first scene logic? 
+        // User complained "goes to first scene and stays there".
+        // It should start from index 0.
         let index = 0;
         const playNext = () => {
             if (!this.isPlaying) return;
 
+            // Loop logic: if index exceeds bounds, wrap around
+            if (index >= this.model.scenes.length) index = 0;
+
             const scene = this.model.scenes[index];
+            if (!scene) {
+                // Should not happen, but safe guard
+                this.stopPlayback();
+                return;
+            }
+
             this.model.restoreState(scene);
             if (scene.viewport && this.renderer) {
                 this.renderer.cameraZoom = scene.viewport.zoom;
@@ -425,12 +530,16 @@ export class UIManager {
             if (overlay) {
                 document.getElementById('currentSceneName').innerText = scene.name;
                 overlay.style.display = 'block';
-                setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+                setTimeout(() => { overlay.style.display = 'none'; }, 1000); // 1s visual feedback
             }
 
             // Schedule next with variable delay
             const delay = scene.duration || 2000;
+
+            // Advance index for NEXT call
             index = (index + 1) % this.model.scenes.length;
+
+            // Wait for 'delay', then play NEXT
             this.playbackTimer = setTimeout(playNext, delay);
         };
 
@@ -486,13 +595,14 @@ export class UIManager {
             // Stopwatch (Duration)
             const timeBtn = document.createElement('button');
             timeBtn.textContent = '⏱️';
-            timeBtn.title = `Delay: ${scene.duration || 2000}ms`;
+            const currentSeconds = (scene.duration || 2000) / 1000;
+            timeBtn.title = `Delay: ${currentSeconds}s`;
             timeBtn.style.padding = '2px 5px';
             timeBtn.onclick = (e) => {
                 e.stopPropagation();
-                const duration = prompt('Delay (ms):', scene.duration || 2000);
+                const duration = prompt('Delay (seconds):', currentSeconds);
                 if (duration) {
-                    scene.duration = parseInt(duration, 10);
+                    scene.duration = parseFloat(duration) * 1000;
                     this.model.saveState();
                     this.renderScenesList(); // Re-render to update tooltip
                 }
@@ -540,27 +650,24 @@ export class UIManager {
     }
 
     updateSceneButtons() {
-        const removeBtn = document.getElementById('removeSceneBtn');
-        const playBtn = document.getElementById('playScenesBtn');
         const largePlayBtn = document.getElementById('largePlayBtn');
-        const largeStopBtn = document.getElementById('largeStopBtn');
-        const selected = document.querySelector('.scene-item.selected');
 
-        if (removeBtn) {
-            removeBtn.disabled = !selected;
-        }
-
-        if (playBtn) {
-            // Disable play if no scenes (already handled in startPlayback logic mostly)
-            playBtn.disabled = this.model.scenes.length === 0;
+        if (largePlayBtn) {
+            if (this.model.scenes.length === 0) {
+                largePlayBtn.disabled = true;
+                largePlayBtn.textContent = '▶️';
+            } else {
+                largePlayBtn.disabled = false;
+                if (this.isPlaying) {
+                    largePlayBtn.textContent = '⏹️'; // Stop (Red Square)
+                    largePlayBtn.title = 'Stop Scenes';
+                } else {
+                    largePlayBtn.textContent = '▶️'; // Play (Green Triangle)
+                    largePlayBtn.title = 'Play Scenes';
+                }
+            }
         }
     }
 
-    /* (IDEA) 2025-12-12
-     * Summary: Non-blocking UI
-     * Improvement: Variable prompts (window.prompt) block the main thread.
-     * Replace with HTML overlays/modals for a smoother experience.
-     * Test Plan: Verify focus management when modal opens/closes.
-     */
 }
 

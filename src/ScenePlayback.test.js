@@ -1,78 +1,83 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
-import { InputHandler } from './controller/InputHandler.js';
 
 describe('Scene Playback', () => {
-    let uiManager, model, renderer, inputHandler;
+    let model, uiManager;
 
     beforeEach(() => {
         vi.useFakeTimers();
         document.body.innerHTML = `
-            <div id="scenesPanel">
-                <div id="scenesList"></div>
-                <div id="scenesPlayControls">
-                    <button id="largePlayBtn">Play</button>
-                    <button id="largeStopBtn" style="display:none">Stop</button>
-                    <button id="addSceneBtn" style="display:none">Add</button>
-                </div>
-                <div id="scenesControls">
-                    <button id="playScenesBtn">Play</button>
-                    <div id="countdownTimer"><span id="countdownValue"></span></div>
-                </div>
-                <div id="sceneNameOverlay"><span id="currentSceneName"></span></div>
-            </div>
-            <canvas id="canvas"></canvas>
-            <div id="helpModal" class="modal"><div class="modal-content"><button class="close-modal-btn"></button></div></div>
+            <div id="scenesList"></div>
+            <!-- MOCK ONLY THE BUTTONS WE HAVE NOW -->
+            <button id="largePlayBtn" style="display:inline-block;">▶️</button>
+            
+            <!-- Other Mocks needed for Init -->
+            <div id="commentModal" style="display:none;"></div>
+            <p id="commentDisplay"></p>
+            <textarea id="commentEditInput"></textarea>
+            <button id="editCommentBtn"></button>
+            <button id="saveCommentBtn"></button>
+            <button id="undoBtn"></button>
+            <button id="redoBtn"></button>
+            <button id="toggleScenesBtn"></button>
+            <button id="addSceneBtn"></button>
         `;
 
         model = new MindMapModel();
-        renderer = {
-            cameraZoom: 1,
-            cameraOffset: { x: 0, y: 0 },
-            screenToWorld: (x, y) => ({ x, y }),
-            worldToScreen: (x, y) => ({ x, y }),
+        model.scenes = [
+            { id: 1, name: 'Scene 1', duration: 1000, elements: [], connections: [] },
+            { id: 2, name: 'Scene 2', duration: 1000, elements: [], connections: [] }
+        ];
+
+        const renderer = {
             draw: vi.fn(),
-            canvas: document.getElementById('canvas')
+            screenToWorld: (x, y) => ({ x, y }),
+            worldToScreen: (x, y) => ({ x, y })
         };
-        inputHandler = new InputHandler(model, renderer);
+        const inputHandler = {};
+
         uiManager = new UIManager(model, renderer, inputHandler);
 
-        // Add 3 scenes
-        const viewport = { zoom: 1, offset: { x: 0, y: 0 } };
-        model.addScene('Scene 1', viewport);
-        model.addScene('Scene 2', viewport);
-        model.addScene('Scene 3', viewport);
+        // Mock restoreState to track calls
+        vi.spyOn(model, 'restoreState');
     });
 
     afterEach(() => {
         vi.useRealTimers();
     });
 
-    it('should cycle through scenes when play is clicked', () => {
-        const playBtn = document.getElementById('playScenesBtn');
-        const overlayName = document.getElementById('currentSceneName');
+    it('should play through scenes and toggle icon when large play button is clicked', () => {
+        const largePlayBtn = document.getElementById('largePlayBtn');
 
-        // Mock restoreState
-        const restoreSpy = vi.spyOn(model, 'restoreState');
+        // Initial State
+        expect(largePlayBtn.textContent).toBe('▶️');
 
-        // Click Play
-        playBtn.click();
+        // Click to Play
+        largePlayBtn.click();
 
-        // Initially should show Scene 1 immediately (or just start timer?)
-        // Let's assume it restores Scene 0 immediately.
-        expect(restoreSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Scene 1' }));
+        // Should change to Stop Icon
+        expect(uiManager.isPlaying).toBe(true);
+        expect(largePlayBtn.textContent).toBe('⏹️');
 
-        // Advance 2 seconds (default interval)
-        vi.advanceTimersByTime(2000);
-        expect(restoreSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Scene 2' }));
+        expect(model.restoreState).toHaveBeenCalledWith(model.scenes[0]);
 
-        // Advance 2 seconds
-        vi.advanceTimersByTime(2000);
-        expect(restoreSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Scene 3' }));
+        // Advance time 1s (Scene 1 duration)
+        vi.advanceTimersByTime(1000);
 
-        // Loop back to 1
-        vi.advanceTimersByTime(2000);
-        expect(restoreSpy).toHaveBeenCalledWith(expect.objectContaining({ name: 'Scene 1' }));
+        // Should be on Scene 2
+        expect(model.restoreState).toHaveBeenCalledWith(model.scenes[1]);
+
+        // Advance time 1s (Scene 2 duration)
+        vi.advanceTimersByTime(1000);
+
+        // Should loop back to Scene 1
+        expect(model.restoreState).toHaveBeenCalledTimes(3);
+        expect(model.restoreState).toHaveBeenLastCalledWith(model.scenes[0]);
+
+        // Click to Stop
+        largePlayBtn.click();
+        expect(uiManager.isPlaying).toBe(false);
+        expect(largePlayBtn.textContent).toBe('▶️');
     });
 });
