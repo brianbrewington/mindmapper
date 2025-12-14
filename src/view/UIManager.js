@@ -548,6 +548,7 @@ export class UIManager {
         this.model.scenes.forEach((scene, index) => {
             const item = document.createElement('div');
             item.className = 'scene-item';
+            // TODO: Highlight active scene if we track it in model
 
             // Context Menu for Scene
             item.oncontextmenu = (e) => {
@@ -559,6 +560,51 @@ export class UIManager {
                     hit: { type: 'scene', scene: scene }
                 });
             };
+
+            // Drag Handle
+            const handle = document.createElement('span');
+            handle.className = 'drag-handle';
+            handle.textContent = '⋮⋮';
+            handle.draggable = true;
+            handle.style.cursor = 'grab';
+            handle.style.marginRight = '8px';
+            handle.style.color = '#ccc';
+
+            // Drag Events
+            handle.addEventListener('dragstart', (e) => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', index);
+                // Optional: add dragging class to item
+                item.classList.add('dragging');
+            });
+
+            handle.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('drop-target'));
+            });
+
+            // Allow dropping ON the item (the row)
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Necessary to allow dropping
+                e.dataTransfer.dropEffect = 'move';
+                item.classList.add('drop-target');
+            });
+
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('drop-target');
+            });
+
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                item.classList.remove('drop-target');
+                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const toIndex = index;
+
+                if (fromIndex !== toIndex) {
+                    this.model.reorderScene(fromIndex, toIndex);
+                    this.renderScenesList();
+                }
+            });
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'scene-name';
@@ -636,6 +682,7 @@ export class UIManager {
             btnContainer.appendChild(renameBtn);
             btnContainer.appendChild(deleteBtn);
 
+            item.appendChild(handle); // Add handle first
             item.appendChild(nameSpan);
             item.appendChild(btnContainer);
             list.appendChild(item);

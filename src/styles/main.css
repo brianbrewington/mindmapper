@@ -352,10 +352,22 @@ input[type="file"] {
 }
 
 .scene-name {
-    flex: 1;
-    font-family: 'Inter', sans-serif;
+    flex-grow: 1;
+    font-weight: 500;
     font-size: 14px;
-    cursor: text;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 5px;
+}
+
+.scene-item.drop-target {
+    border-bottom: 2px solid #007bff;
+    background: #f0f7ff;
+}
+
+.drag-handle:hover {
+    color: #666 !important;
 }
 
 /* Make emoji icons larger on buttons */

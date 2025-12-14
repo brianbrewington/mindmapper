@@ -237,4 +237,23 @@ export class MindMapModel {
     setDefaultColor(color) {
         this.defaultColor = color;
     }
+
+    /**
+     * Reorders a scene from one index to another.
+     * @param {number} fromIndex 
+     * @param {number} toIndex 
+     */
+    reorderScene(fromIndex, toIndex) {
+        if (fromIndex < 0 || fromIndex >= this.scenes.length || toIndex < 0 || toIndex >= this.scenes.length) {
+            return;
+        }
+
+        // Remove from old position
+        const [movedScene] = this.scenes.splice(fromIndex, 1);
+
+        // Insert at new position
+        this.scenes.splice(toIndex, 0, movedScene);
+
+        this.saveState();
+    }
 }
