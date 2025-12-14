@@ -17,6 +17,7 @@ Format: `- [ ] Description (File/Context)`
 - [ ] **Create a dark theme toggle**: Attempted but reverted due to UI regressions.
 - [x] **Color edit boxes have vanished**: Re-implemented `setupColorPalette` in `UIManager.js`. (2025-12-13)
 - [x] **Shift-Click to Connect**: Implemented in `InputHandler.js`. (2025-12-13)
+- [x] **Color Buttons Broken**: The color palette buttons do not work for bubbles at all. (Fixed 2025-12-14: Implemented `defaultColor` and `updateElement` in Model)
 - [ ] **Force Layout Action**: Button exists but logs to console. Need physics engine. I wonder if there is a way to make a "dark theme"? 
 - [ ] **Complete Resize Logic**: `InputHandler.js` only handles `top-left` resizing; other handles are missing/simplified.
 - [ ] **Fix Ghost Connection Drawing**: `CanvasRenderer.js` relies on `InputHandler` to draw the temp connection line. This violates separation of concerns.

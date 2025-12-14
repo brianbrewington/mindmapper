@@ -153,9 +153,9 @@ export class UIManager {
                 if (this.model.selectedElement && this.model.selectedElement.type === 'bubble') {
                     this.model.updateElement(this.model.selectedElement.id, { color: color });
                     this.renderer.draw();
-                } else if (!this.model.selectedElement) {
-                    // Optional: Set default color for NEW bubbles? 
-                    // For now just for selected element as per bug report "When a bubble is selected..."
+                } else {
+                    // Set default color for NEW bubbles
+                    this.model.setDefaultColor(color);
                 }
             };
 
@@ -410,7 +410,7 @@ export class UIManager {
                         Object.assign(newElement, {
                             type: 'bubble',
                             radiusX: 50, radiusY: 30, // Default, will auto-size
-                            color: '#87CEEB'
+                            color: this.model.defaultColor || '#87CEEB'
                         });
                     } else if (type === 'text') {
                         Object.assign(newElement, {

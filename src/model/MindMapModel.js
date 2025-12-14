@@ -29,6 +29,9 @@ export class MindMapModel {
 
         // Save initial state
         this.saveState();
+
+        /** @type {string} Default color for new bubbles */
+        this.defaultColor = '#87CEEB';
     }
 
     on(event, callback) {
@@ -214,5 +217,24 @@ export class MindMapModel {
         return xml;
     }
 
+    /**
+     * Updates an element's properties.
+     * @param {string|number} id - Element ID.
+     * @param {Object} props - Properties to update.
+     */
+    updateElement(id, props) {
+        const el = this.elements.find(e => e.id === id);
+        if (el) {
+            Object.assign(el, props);
+            this.saveState();
+        }
+    }
 
+    /**
+     * Sets the default color for new bubbles.
+     * @param {string} color 
+     */
+    setDefaultColor(color) {
+        this.defaultColor = color;
+    }
 }
