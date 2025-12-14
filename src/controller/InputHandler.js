@@ -53,9 +53,15 @@ export class InputHandler {
             return;
         }
 
-        // Left click (Select/Drag)
+        // Left click (Select/Drag or Complete Connection)
         if (e.button === 0) {
             const result = this.hitTest(pos.x, pos.y);
+
+            // If connecting, ANY left click attempts to resolve the connection
+            if (this.connectionStartElement) {
+                this.handleConnectionStart(pos);
+                return;
+            }
 
             // Shift+Click on bubble -> Connect
             if (e.shiftKey && result.type === 'element' && result.element.type === 'bubble') {
@@ -85,15 +91,17 @@ export class InputHandler {
     handleConnectionStart(pos) {
         const result = this.hitTest(pos.x, pos.y);
         if (this.connectionStartElement) {
-            // Complete connection
+            // Complete connection or Cancel
             if (result.type === 'element' && result.element.type === 'bubble' && result.element.id !== this.connectionStartElement.id) {
+                // Determine weight? Default 1.
                 this.model.addConnection(this.connectionStartElement.id, result.element.id);
             }
+            // Always clear connection state after a second click (whether successful or not)
             this.connectionStartElement = null;
             this.canvas.classList.remove('connecting');
             this.renderer.setTempConnection(null, 0, 0); // Clear temp line
         } else {
-            // Start connection
+            // Start connection (only if valid bubble)
             if (result.type === 'element' && result.element.type === 'bubble') {
                 this.connectionStartElement = result.element;
                 this.canvas.classList.add('connecting');
