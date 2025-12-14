@@ -2,14 +2,16 @@
 
 A modern, web-based mind mapping application built with Vanilla JavaScript and Vite.
 
-![Mind Mapper Screenshot](placeholder_screenshot.png)
+![Mind Mapper Screenshot](screenshot.png)
 
 ## Features
 
 - **Visual Mind Maps**: Create bubbles, text annotations, and images (drag & drop supported).
 - **Interactive Connections**: Connect bubbles by middle-clicking or Shift-clicking.
 - **Scene Management**: Create sequences of views ("Scenes") for presentations, with custom delays and transitions.
+- **Animated Walkthroughs**: Play back scenes to tell a story or present an idea.
 - **Persistence**: automatically saves to local storage. Import/Export to JSON.
+- **JSON Storage**: Save and load your maps as JSON files for backup or sharing.
 - **Quine Mode**: "Bundle" the entire application and your map into a single self-contained HTML file that can be shared and opened offline.
 - **GEXF Export**: Export your graph structure for analysis in tools like Gephi.
 

@@ -83,6 +83,18 @@ Transform the single-player app into a collaborative whiteboard.
 
 ---
 
+## 4. Scene Enhancements
+Improve the "Scenes" presentation mode.
+
+- **Drag-to-Reposition**: Add drag handles to scene list items to reorder them easily.
+- **Single-Step Mode**: Add a "Step Forward" button/icon. When "Play" is active, this should be disabled.
+- **Scene Notes**: Add a text area for each scene to store presenter notes or long-form comments.
+
+## 5. Media Integration
+- **Add Images**: (Currently broken/disabled). Re-implement the ability to add images to the canvas, potentially via Drag & Drop or a file picker.
+
+---
+
 ## Common Work Priorities
 
 Across these expansion plans, several common foundational improvements are needed:

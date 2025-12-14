@@ -1,0 +1,84 @@
+{
+  "elements": [
+    {
+      "type": "bubble",
+      "id": "root",
+      "x": 0,
+      "y": 0,
+      "text": "Mind Mapper Demo",
+      "radiusX": 80,
+      "radiusY": 40,
+      "color": "#82CAFA",
+      "fontSize": 20,
+      "font": "20px Poppins"
+    },
+    {
+      "type": "bubble",
+      "id": "feature1",
+      "x": -200,
+      "y": 100,
+      "text": "Scenes",
+      "radiusX": 60,
+      "radiusY": 30,
+      "color": "#87CEEB",
+      "fontSize": 16,
+      "font": "16px Poppins"
+    },
+    {
+      "type": "bubble",
+      "id": "feature2",
+      "x": 0,
+      "y": 150,
+      "text": "Persistence",
+      "radiusX": 60,
+      "radiusY": 30,
+      "color": "#87CEEB",
+      "fontSize": 16,
+      "font": "16px Poppins"
+    },
+    {
+      "type": "bubble",
+      "id": "feature3",
+      "x": 200,
+      "y": 100,
+      "text": "Connections",
+      "radiusX": 60,
+      "radiusY": 30,
+      "color": "#87CEEB",
+      "fontSize": 16,
+      "font": "16px Poppins"
+    },
+    {
+      "type": "text",
+      "id": "note1",
+      "x": -200,
+      "y": 140,
+      "text": "Create presentations!",
+      "color": "#555",
+      "fontSize": 12,
+      "font": "12px Poppins"
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "from": "root",
+      "to": "feature1",
+      "weight": 2
+    },
+    {
+      "id": "c2",
+      "from": "root",
+      "to": "feature2",
+      "weight": 2
+    },
+    {
+      "id": "c3",
+      "from": "root",
+      "to": "feature3",
+      "weight": 2
+    }
+  ],
+  "scenes": [],
+  "version": "1.0"
+}
