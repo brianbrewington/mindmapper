@@ -42,6 +42,29 @@ npm run dev
 
 Open your browser to the URL shown (usually `http://localhost:5173`).
 
+### Building for Production
+
+To build the application for deployment (creates a `dist` directory):
+
+```bash
+npm run build
+```
+
+To preview the production build locally:
+
+```bash
+npm run preview
+```
+
+### Running Tests
+
+To run the unit test suite (using Vitest):
+
+```bash
+npm test
+```
+
+
 ### Controls
 
 | Action | Control |
