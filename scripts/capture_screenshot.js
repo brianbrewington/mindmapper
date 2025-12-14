@@ -17,14 +17,6 @@ const fs = require('fs');
     // Set viewport size for the screenshot
     await page.setViewport({ width: 1200, height: 800 });
 
-    // Assuming the app is built to dist/index.html or served
-    // For simplicity, we'll try to load the local index.html with a simple server or file protocol
-    // Vite dev server is best if running, but for file protocol:
-    const fileUrl = 'file://' + path.resolve(__dirname, '../index.html');
-
-    // Note: Local file loading might have issues with ES modules (CORS).
-    // Better to use the vite preview URL if available, or assume user runs this while server is up.
-    // Let's try running a quick static serve or assume port 5173.
     const url = 'http://localhost:5173';
 
     console.log(`Navigating to ${url}...`);
@@ -39,12 +31,46 @@ const fs = require('fs');
     // Wait for canvas
     await page.waitForSelector('#canvas');
 
-    // Load demo map logic could be injected here or we just take a shot of whatever is default.
-    // To ensure demo map is loaded, we can inject JS to load it from the window object if we exposed it,
-    // or simulate the file load.
+    console.log('Loading demo_mindmap.json...');
 
-    // Simpler: Just screenshot the default view for now as a "Build" artifact.
-    // If the user wants the demo map specifically, we'd need to fetch it in browser context.
+    // Evaluate in browser context to load data
+    await page.evaluate(async () => {
+        try {
+            const response = await fetch('/demo_mindmap.json');
+            if (!response.ok) throw new Error('Failed to fetch demo map');
+            const data = await response.json();
+
+            if (window.app && window.app.model) {
+                window.app.model.restoreState(data);
+                window.app.renderer.draw();
+                console.log('Demo map loaded.');
+
+                // Expand Scenes Panel
+                const scenesPanel = document.getElementById('scenesPanel');
+                if (scenesPanel && scenesPanel.classList.contains('collapsed')) {
+                    // If it starts collapsed, toggle it. 
+                    // Or check button. 
+                }
+                // Actually, let's just ensure it's open.
+                // The implementation uses toggle on button click.
+                // Let's toggle it via button if needed, or direct class manipulation.
+
+                // Assuming it starts collapsed or open? 
+                // Let's just find the toggle button and click it if the panel 'collapsed' class is present?
+                // Wait, in main.css it seems it might be collapsed by default or not.
+                // Let's just force remove 'collapsed' class to be safe.
+                if (scenesPanel) scenesPanel.classList.remove('collapsed');
+
+            } else {
+                console.error('window.app not found');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    // Wait for rendering update
+    await new Promise(r => setTimeout(r, 1000));
 
     console.log('Taking screenshot...');
     await page.screenshot({ path: path.resolve(__dirname, '../screenshot.png') });

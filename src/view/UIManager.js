@@ -563,6 +563,7 @@ export class UIManager {
             const nameSpan = document.createElement('span');
             nameSpan.className = 'scene-name';
             nameSpan.textContent = scene.name;
+            nameSpan.title = scene.name; // Full name on hover
 
             item.onclick = () => {
                 this.model.restoreState(scene);
