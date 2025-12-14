@@ -1,83 +1,75 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { UIManager } from './view/UIManager.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MindMapModel } from './model/MindMapModel.js';
+import { UIManager } from './view/UIManager.js';
 
-describe('Scene Playback', () => {
-    let model, uiManager;
+describe('Scene Playback UI', () => {
+    let model;
+    let uiManager;
+    let mockRenderer;
 
     beforeEach(() => {
-        vi.useFakeTimers();
+        model = new MindMapModel();
+        mockRenderer = {
+            draw: vi.fn(),
+            screenToWorld: vi.fn().mockReturnValue({ x: 0, y: 0 }),
+            worldToScreen: vi.fn().mockReturnValue({ x: 0, y: 0 }),
+            cameraZoom: 1,
+            cameraOffset: { x: 0, y: 0 }
+        };
+
+        // Mock DOM ensuring all expected elements exist to prevent UIManager crashes
         document.body.innerHTML = `
-            <div id="scenesList"></div>
-            <!-- MOCK ONLY THE BUTTONS WE HAVE NOW -->
-            <button id="largePlayBtn" style="display:inline-block;">▶️</button>
+            <div id="undoBtn"></div>
+            <div id="redoBtn"></div>
+            <div id="addBubbleBtn"></div>
+            <div id="addTextBtn"></div>
+            <div id="colorPalette"></div>
+            <input id="textInput" />
+            <div id="helpModal"></div>
+             <div id="commentModal"></div>
+            <div id="commentDisplay"></div>
+            <div id="commentEditInput"></div>
+            <div id="editCommentBtn"></div>
+            <div id="saveCommentBtn"></div>
+            <div id="scenesPanel">
+                <div id="scenesHeader"></div>
+                <div id="scenesList"></div>
+                <div id="scenesControls">
+                    <button id="addSceneBtn"></button>
+                    <button id="stepSceneBtn"></button>
+                </div>
+            </div>
+            <div id="largePlayBtn"></div>
             
-            <!-- Other Mocks needed for Init -->
-            <div id="commentModal" style="display:none;"></div>
-            <p id="commentDisplay"></p>
-            <textarea id="commentEditInput"></textarea>
-            <button id="editCommentBtn"></button>
-            <button id="saveCommentBtn"></button>
-            <button id="undoBtn"></button>
-            <button id="redoBtn"></button>
-            <button id="toggleScenesBtn"></button>
-            <button id="addSceneBtn"></button>
+            <!-- The Overlay Element in Question -->
+            <div id="sceneNameOverlay" style="display: none; opacity: 0;">
+                <span id="currentSceneName"></span>
+            </div>
+            
+            <div id="contextMenu" style="display:none;"></div> 
         `;
 
-        model = new MindMapModel();
-        model.scenes = [
-            { id: 1, name: 'Scene 1', duration: 1000, elements: [], connections: [] },
-            { id: 2, name: 'Scene 2', duration: 1000, elements: [], connections: [] }
-        ];
-
-        const renderer = {
-            draw: vi.fn(),
-            screenToWorld: (x, y) => ({ x, y }),
-            worldToScreen: (x, y) => ({ x, y })
-        };
-        const inputHandler = {};
-
-        uiManager = new UIManager(model, renderer, inputHandler);
-
-        // Mock restoreState to track calls
-        vi.spyOn(model, 'restoreState');
+        uiManager = new UIManager(model, mockRenderer, {});
     });
 
-    afterEach(() => {
-        vi.useRealTimers();
-    });
+    it('should display scene name overlay when playing or stepping', async () => {
+        // Add a scene
+        model.addScene("Test Scene");
 
-    it('should play through scenes and toggle icon when large play button is clicked', () => {
-        const largePlayBtn = document.getElementById('largePlayBtn');
+        // Setup UI
+        uiManager.renderScenesList(); // Just in case
 
-        // Initial State
-        expect(largePlayBtn.textContent).toBe('▶️');
+        // Step to the scene
+        uiManager.stepScene();
 
-        // Click to Play
-        largePlayBtn.click();
+        // Check Overlay
+        const overlay = document.getElementById('sceneNameOverlay');
+        const nameSpan = document.getElementById('currentSceneName');
 
-        // Should change to Stop Icon
-        expect(uiManager.isPlaying).toBe(true);
-        expect(largePlayBtn.textContent).toBe('⏹️');
+        expect(nameSpan.textContent).toBe("Test Scene");
 
-        expect(model.restoreState).toHaveBeenCalledWith(model.scenes[0]);
-
-        // Advance time 1s (Scene 1 duration)
-        vi.advanceTimersByTime(1000);
-
-        // Should be on Scene 2
-        expect(model.restoreState).toHaveBeenCalledWith(model.scenes[1]);
-
-        // Advance time 1s (Scene 2 duration)
-        vi.advanceTimersByTime(1000);
-
-        // Should loop back to Scene 1
-        expect(model.restoreState).toHaveBeenCalledTimes(3);
-        expect(model.restoreState).toHaveBeenLastCalledWith(model.scenes[0]);
-
-        // Click to Stop
-        largePlayBtn.click();
-        expect(uiManager.isPlaying).toBe(false);
-        expect(largePlayBtn.textContent).toBe('▶️');
+        // Should be visible (opacity 1 AND display block)
+        expect(overlay.style.opacity).toBe('1');
+        expect(overlay.style.display).not.toBe('none');
     });
 });

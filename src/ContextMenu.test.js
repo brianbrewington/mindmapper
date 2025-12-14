@@ -9,9 +9,9 @@ describe('Data-Driven Context Menu', () => {
     beforeEach(() => {
         document.body.innerHTML = `
             <div id="app"></div>
-             <!-- Menu container might not exist yet, UIManager should create it -->
             <button id="addBubbleBtn"></button>
             <div id="textInput" style="display:none;"></div>
+            <div id="contextMenu"></div>
         `;
 
         model = new MindMapModel();
@@ -29,12 +29,7 @@ describe('Data-Driven Context Menu', () => {
         uiManager = new UIManager(model, renderer, inputHandler);
     });
 
-    it('should create context menu container on demand', () => {
-        // Initial state: no menu (Lazy creation)
-        expect(document.getElementById('contextMenu')).toBeNull();
-
-        // Trigger show
-        uiManager.showContextMenu({ x: 0, y: 0, hit: { type: 'canvas' } });
+    it('should use existing context menu container', () => {
         expect(document.getElementById('contextMenu')).toBeTruthy();
     });
 

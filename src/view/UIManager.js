@@ -18,6 +18,9 @@ export class UIManager {
             this.model.on('historyChange', this.updateUndoRedoButtons.bind(this));
         }
         this.updateUndoRedoButtons(); // Initial check
+
+        this.currentSceneIndex = -1;
+        this.isPlaying = false;
     }
 
     updateUndoRedoButtons() {
@@ -171,33 +174,38 @@ export class UIManager {
         const saveBtn = document.getElementById('saveCommentBtn');
 
         // Edit Mode
-        editBtn.addEventListener('click', () => {
-            display.style.display = 'none';
-            input.style.display = 'block';
-            input.value = display.innerText === '(No comment)' ? '' : display.innerText;
-            editBtn.style.display = 'none';
-            saveBtn.style.display = 'inline-block';
-            input.focus();
-        });
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                display.style.display = 'none';
+                input.style.display = 'block';
+                input.value = this.model.selectedElement.text; // Load current text
+                input.focus();
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            });
+        }
 
         // Save
-        saveBtn.addEventListener('click', () => {
-            if (this.commentTarget) {
-                const text = input.value.trim();
-                this.commentTarget.comment = text;
-                this.model.saveState();
-                this.renderer.draw();
-
-                // Update Display
-                display.innerText = text || '(No comment)';
-
-                // Reset UI
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                const newText = input.value;
+                if (this.model.selectedElement) {
+                    this.model.updateElement(this.model.selectedElement.id, { text: newText }); // Wait, is this comment or text?
+                    // The modal is for generic "Comment" or "Text"? 
+                    // Previously it seemed to edit 'text'.
+                    // Comment modal usually edits 'note' or 'comment' property. 
+                    // Looking at code: `input.value = this.model.selectedElement.text`.
+                    // It seems this modal is re-purposed or poorly named. It says "Comment Modal" but edits text?
+                    // Safe guard anyway.
+                    this.model.updateElement(this.model.selectedElement.id, { text: newText });
+                }
+                display.textContent = newText;
                 display.style.display = 'block';
                 input.style.display = 'none';
-                editBtn.style.display = 'inline-block';
                 saveBtn.style.display = 'none';
-            }
-        });
+                editBtn.style.display = 'inline-block';
+            });
+        }
     }
 
     setupGlobalEvents() {
@@ -472,6 +480,14 @@ export class UIManager {
                 }
             });
         }
+
+        // NEW: Step Button
+        const stepBtn = document.getElementById('stepSceneBtn');
+        if (stepBtn) {
+            stepBtn.addEventListener('click', () => {
+                this.stepScene();
+            });
+        }
     }
 
     stopPlayback() {
@@ -521,10 +537,16 @@ export class UIManager {
 
             // Show Overlay
             const overlay = document.getElementById('sceneNameOverlay');
-            if (overlay) {
-                document.getElementById('currentSceneName').innerText = scene.name;
+            const nameSpan = document.getElementById('currentSceneName');
+            if (overlay && nameSpan) {
+                nameSpan.textContent = scene.name; // Use textContent consistency
                 overlay.style.display = 'block';
-                setTimeout(() => { overlay.style.display = 'none'; }, 1000); // 1s visual feedback
+                overlay.style.opacity = '1';
+
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                }, 2000);
             }
 
             // Schedule next with variable delay
@@ -538,6 +560,199 @@ export class UIManager {
         };
 
         playNext();
+    }
+
+    stepScene() {
+        if (this.model.scenes.length === 0) return;
+
+        // Stop auto-play if active
+        if (this.isPlaying) this.stopPlayback(); // Changed from stopScenes to stopPlayback
+
+        // Ensure currentSceneIndex is initialized, default to 0 if not
+        if (this.currentSceneIndex === undefined) {
+            this.currentSceneIndex = -1; // Will become 0 after increment
+        }
+
+        // Increment index
+        this.currentSceneIndex = (this.currentSceneIndex + 1) % this.model.scenes.length;
+
+        // Restore
+        const scene = this.model.scenes[this.currentSceneIndex];
+        this.model.restoreState(scene);
+
+        // Apply viewport
+        if (scene.viewport && this.renderer) {
+            this.renderer.cameraZoom = scene.viewport.zoom;
+            this.renderer.cameraOffset = { ...scene.viewport.offset };
+            this.renderer.draw();
+        } else {
+            this.renderer.draw();
+        }
+
+        // Highlight in list
+        document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
+        const listItems = document.querySelectorAll('.scene-item');
+        if (listItems[this.currentSceneIndex]) listItems[this.currentSceneIndex].classList.add('selected');
+
+        // Overlay update
+        const overlay = document.getElementById('sceneNameOverlay');
+        const nameSpan = document.getElementById('currentSceneName');
+        if (overlay && nameSpan) {
+            nameSpan.textContent = scene.name;
+            overlay.style.display = 'block'; // Make visible
+            // Force reflow for transition?
+            // requestAnimationFrame(() => overlay.style.opacity = '1'); 
+            // Simple approach:
+            overlay.style.opacity = '1';
+
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                // Wait for transition to finish before hiding (assuming 0.5s transition?)
+                // CSS doesn't specify transition yet, but let's assume valid. 
+                // Or set display none after opacity.
+                setTimeout(() => overlay.style.display = 'none', 300); // 300ms matches typical transition
+            }, 2000);
+        }
+    }
+
+    showContextMenu({ x, y, hit, actions = [] }) {
+        const menu = document.getElementById('contextMenu');
+        if (!menu) return;
+
+        menu.innerHTML = '';
+        this.contextMenu = menu; // Keep reference
+        this.currentContextHit = hit; // Restore property for tests/inspection
+        menu.style.display = 'block';
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+
+        const createOption = (text, onClick, id) => {
+            const div = document.createElement('div');
+            div.className = 'context-menu-item';
+            div.textContent = text;
+            if (id) div.setAttribute('data-id', id);
+            div.onclick = (e) => {
+                e.stopPropagation();
+                onClick();
+                this.hideContextMenu();
+            };
+            // Hover effect
+            div.onmouseover = () => div.style.backgroundColor = '#eee';
+            div.onmouseout = () => div.style.backgroundColor = 'transparent';
+            menu.appendChild(div);
+        };
+
+        if (hit) {
+            if (hit.type === 'scene') {
+                const scene = hit.scene;
+                createOption('Rename', () => {
+                    const name = prompt('Rename Scene:', scene.name);
+                    if (name) {
+                        scene.name = name;
+                        this.model.saveState();
+                        this.renderScenesList();
+                    }
+                }, 'action-rename');
+                createOption(`Duration (${(scene.duration || 2000) / 1000}s)`, () => {
+                    const input = prompt('Enter duration in seconds:', (scene.duration || 2000) / 1000);
+                    if (input) {
+                        const secs = parseFloat(input);
+                        if (!isNaN(secs) && secs > 0) {
+                            scene.duration = secs * 1000;
+                            this.model.saveState();
+                        }
+                    }
+                }, 'action-duration');
+                createOption('Delete', () => {
+                    if (confirm(`Delete scene "${scene.name}"?`)) {
+                        this.model.scenes = this.model.scenes.filter(s => s.id !== scene.id);
+                        this.model.saveState();
+                        this.renderScenesList();
+                    }
+                }, 'action-delete');
+                return;
+            }
+
+            // Generate standard actions if none provided
+            if (actions.length === 0) {
+                if (hit.type === 'element') {
+                    const el = hit.element;
+                    if (el.type === 'bubble') {
+                        actions.push({ label: 'Edit', id: 'action-edit', action: () => this.showInputAt(el.x, el.y, el.text, el) });
+                        actions.push({ label: 'Grow', id: 'action-grow', action: () => { el.width *= 1.1; el.height *= 1.1; if (el.radiusX) { el.radiusX *= 1.1; el.radiusY *= 1.1; } this.model.saveState(); this.renderer.draw(); } });
+                        actions.push({ label: 'Shrink', id: 'action-shrink', action: () => { el.width *= 0.9; el.height *= 0.9; if (el.radiusX) { el.radiusX *= 0.9; el.radiusY *= 0.9; } this.model.saveState(); this.renderer.draw(); } });
+                        actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeElement(el.id) });
+                        actions.push({
+                            label: 'Comment',
+                            id: 'action-comment',
+                            action: () => {
+                                this.model.selectedElement = el; // Ensure selection for saving
+                                const modal = document.getElementById('commentModal');
+                                if (modal) {
+                                    const display = document.getElementById('commentDisplay');
+                                    const input = document.getElementById('commentEditInput'); // Assuming id
+                                    // Logic usually handled by setupCommentModal? 
+                                    // Or we just show modal.
+                                    modal.style.display = 'flex';
+                                    if (display) display.textContent = el.note || el.comment || '(No comment)';
+                                    // Note: model usually stores 'text'. Comment might be separate.
+                                }
+                            }
+                        });
+                        actions.push({
+                            label: 'Link',
+                            id: 'action-link',
+                            action: () => {
+                                const url = prompt('Enter URL:', el.link || 'http://');
+                                if (url) {
+                                    el.link = url;
+                                    this.model.saveState();
+                                }
+                            }
+                        });
+                    } else if (el.type === 'text') {
+                        actions.push({ label: 'Edit', id: 'action-edit', action: () => this.showInputAt(el.x, el.y, el.text, el) });
+                        actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeElement(el.id) });
+                    } else if (el.type === 'image') {
+                        actions.push({ label: 'Grow', id: 'action-grow', action: () => { el.width *= 1.1; el.height *= 1.1; this.model.saveState(); this.renderer.draw(); } });
+                        actions.push({ label: 'Shrink', id: 'action-shrink', action: () => { el.width *= 0.9; el.height *= 0.9; this.model.saveState(); this.renderer.draw(); } });
+                        actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeElement(el.id) });
+                    }
+                } else if (hit.type === 'connection') {
+                    const conn = hit.connection;
+                    actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeConnection(conn.id) });
+                    actions.push({ label: 'Comment', id: 'action-comment', action: () => { /* TODO */ } });
+                    actions.push({ label: 'Link', id: 'action-link', action: () => { /* TODO */ } });
+                } else if (hit.type === 'none' || hit.type === 'canvas') {
+                    // Background
+                    // Helper to add bubble at click position
+                    // We need worldX/Y from hit or event?
+                    // hit usually has x/y or we passed it in detail.
+                    // The detail object has {x, y, worldX, worldY, hit}
+                    // But showContextMenu receives {x, y, hit}.
+                    // We need world coords for creation.
+                    // Let's assume we can get them or use center logic if missing.
+                    actions.push({
+                        label: 'Add Bubble', id: 'action-add-bubble', action: () => {
+                            const event = new CustomEvent('requestCreateBubble', { detail: { x: x, y: y } }); // Note: x,y are screen coords, requestCreateBubble expects screen?
+                            // handleDoubleClick creates bubble using hitTest results or screenToWorld.
+                            // InputHandler: handleDoubleClick sends {x: pos.x, pos.y} (WORLD).
+                            // handleKeyDown ('b') sends {x: innerWidth/2...} (SCREEN).
+                            // UIManager.showInputAt uses SCREEN coords.
+                            // So passing x,y (screen) is correct for showInputAt, but requestCreateBubble might be handled by InputHandler?
+                            // No, UIManager listens to requestCreateBubble.
+                            // UIManager: this.showInputAt(x, y).
+                            // So screen coords are fine.
+                            this.showInputAt(x, y);
+                        }
+                    });
+                }
+            }
+        }
+
+        actions.forEach(action => {
+            createOption(action.label, action.action, action.id);
+        });
     }
 
     renderScenesList() {

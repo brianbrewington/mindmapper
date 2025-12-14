@@ -24,6 +24,7 @@ describe('UIManager', () => {
             <button id="addTextBtn"></button>
             <button id="zoomExtentsBtn"></button>
             <button id="addSceneBtn"></button>
+            <div id="contextMenu"></div>
         `;
         textInput = document.getElementById('textInput');
 

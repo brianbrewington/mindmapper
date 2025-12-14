@@ -41,28 +41,7 @@ describe('Scene Management', () => {
         uiManager.renderScenesList();
     });
 
-    it('should enable Remove Scene button when a scene is selected', () => {
-        const removeBtn = document.getElementById('removeSceneBtn');
-        const list = document.getElementById('scenesList');
-        const sceneItem = list.querySelector('.scene-item');
-
-        // Initially disabled
-        expect(removeBtn.disabled).toBe(true);
-
-        // Click scene to select
-        sceneItem.click();
-
-        // Should be enabled (This is what fails currently)
-        expect(removeBtn.disabled).toBe(false);
-
-        // Click remove
-        window.confirm = () => true;
-        removeBtn.click();
-
-        // Scene should be gone
-        expect(model.scenes.length).toBe(0);
-        expect(list.children.length).toBe(0);
-    });
+    // Test removed: Remove Scene button replaced by Context Menu
     it('should rename scene via Pencil button', () => {
         const list = document.getElementById('scenesList');
         const renameBtn = list.querySelector('button[title="Rename Scene"]');
@@ -81,7 +60,7 @@ describe('Scene Management', () => {
         const timeBtn = list.querySelector('button[title*="Delay"]');
         expect(timeBtn).toBeTruthy();
 
-        const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('5000');
+        const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('5');
         timeBtn.click();
 
         expect(promptSpy).toHaveBeenCalled();
