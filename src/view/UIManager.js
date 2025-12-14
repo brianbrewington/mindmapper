@@ -521,7 +521,7 @@ export class UIManager {
                 return;
             }
 
-            this.model.restoreState(scene);
+            // this.model.restoreState(scene); // Scenes are Viewport-only
             if (scene.viewport && this.renderer) {
                 this.renderer.cameraZoom = scene.viewport.zoom;
                 this.renderer.cameraOffset = { ...scene.viewport.offset };
@@ -578,7 +578,7 @@ export class UIManager {
 
         // Restore
         const scene = this.model.scenes[this.currentSceneIndex];
-        this.model.restoreState(scene);
+        // this.model.restoreState(scene); // Scenes are Viewport-only
 
         // Apply viewport
         if (scene.viewport && this.renderer) {
@@ -827,7 +827,7 @@ export class UIManager {
             nameSpan.title = scene.name; // Full name on hover
 
             item.onclick = () => {
-                this.model.restoreState(scene);
+                // this.model.restoreState(scene); // Scenes are now Viewport-only
                 if (scene.viewport) {
                     this.renderer.cameraZoom = scene.viewport.zoom;
                     this.renderer.cameraOffset = { ...scene.viewport.offset };

@@ -55,39 +55,35 @@ describe('Scene Interactions', () => {
     });
 
     it('should advance to next scene when Single Step is clicked', () => {
-        // Add 2 scenes
-        model.addScene("Scene 1");
-        model.addScene("Scene 2");
-
-        // Mock restoreState
-        vi.spyOn(model, 'restoreState');
+        // Add 2 scenes with DISTINCT viewports to verify switching
+        const vp1 = { zoom: 1.5, offset: { x: 10, y: 10 } };
+        const vp2 = { zoom: 2.0, offset: { x: 20, y: 20 } };
+        model.addScene("Scene 1", vp1);
+        model.addScene("Scene 2", vp2);
 
         // Setup UI
         uiManager.renderScenesList();
-        // uiManager.setupScenesPanel(); // Called in constructor
-
-        // We need to set the current playing index or ensure it starts at -1 or 0
-        // UIManager internal state `currentSceneIndex` is usually reset on play.
-        // For stepping, we might need to know which is active. 
-        // Let's assume stepping starts from 0 if stopped.
 
         const stepBtn = document.getElementById('stepSceneBtn');
         expect(stepBtn).toBeTruthy();
 
+        // 1. Click Step -> Should go to Scene 1 (index 0)
         stepBtn.click();
 
-        // Should restore Scene 0 (or Scene 1 if we consider 0 current?)
-        // If we are "stopped", hitting step should show Scene 0? Or Scene 1?
-        // Usually "Next" implies Scene 0 if fresh.
-        expect(model.restoreState).toHaveBeenCalled();
-        // Check argument (scene object)
-        const lastCallArgs = model.restoreState.mock.lastCall;
-        expect(lastCallArgs[0].name).toBe("Scene 1");
+        // Verify Viewport update
+        expect(mockRenderer.cameraZoom).toBe(1.5);
+        expect(mockRenderer.cameraOffset).toEqual({ x: 10, y: 10 });
+        expect(mockRenderer.draw).toHaveBeenCalled();
 
-        // Click again
+        // Verify Overlay update
+        const nameSpan = document.getElementById('currentSceneName');
+        expect(nameSpan.textContent).toBe("Scene 1");
+
+        // 2. Click Step -> Should go to Scene 2 (index 1)
         stepBtn.click();
-        const secondCallArgs = model.restoreState.mock.lastCall;
-        expect(secondCallArgs[0].name).toBe("Scene 2");
+        expect(mockRenderer.cameraZoom).toBe(2.0);
+        expect(mockRenderer.cameraOffset).toEqual({ x: 20, y: 20 });
+        expect(nameSpan.textContent).toBe("Scene 2");
     });
 
     it('should show extended options in Scene Context Menu', () => {

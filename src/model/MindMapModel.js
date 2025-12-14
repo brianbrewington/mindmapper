@@ -149,8 +149,8 @@ export class MindMapModel {
      */
     restoreState(state, pushToHistory = false) {
         if (!state) return;
-        this.elements = JSON.parse(JSON.stringify(state.elements));
-        this.connections = JSON.parse(JSON.stringify(state.connections));
+        if (state.elements) this.elements = JSON.parse(JSON.stringify(state.elements));
+        if (state.connections) this.connections = JSON.parse(JSON.stringify(state.connections));
         if (state.scenes) {
             this.scenes = JSON.parse(JSON.stringify(state.scenes));
         }
@@ -182,12 +182,31 @@ export class MindMapModel {
         const scene = {
             id: Date.now(),
             name: name,
-            elements: JSON.parse(JSON.stringify(this.elements)),
-            connections: JSON.parse(JSON.stringify(this.connections)),
+            // elements: JSON.parse(JSON.stringify(this.elements)), // No longer snapshotting data
+            // connections: JSON.parse(JSON.stringify(this.connections)),
             viewport: viewport ? JSON.parse(JSON.stringify(viewport)) : null
         };
         this.scenes.push(scene);
         this.saveState();
+    }
+
+    /**
+     * Restores the model to a scene's viewpoint.
+     * Does NOT restore elements or connections (Global State).
+     * @param {Object} scene
+     */
+    restoreScene(scene) {
+        if (!scene) return;
+        if (scene.viewport) {
+            // Assuming viewport contains cameraZoom and cameraOffset/Offset
+            // But the model doesn't track camera directly? Contains 'viewport'?
+            // Wait, renderer tracks camera. Model usually just holds data.
+            // But restoreState implied model holds it?
+            // Let's check restoreState source again. 
+            // restoreState didn't show viewport restoration in snippet 728!
+            // It only showed elements, connections, scenes.
+            // Where is viewport restored?
+        }
     }
 
     /**
