@@ -3,6 +3,8 @@
  * Reads the Model and renders the visual representation.
  */
 
+import { COLORS, FONTS, CONFIG } from '../Constants.js';
+
 export class CanvasRenderer {
     /**
      * @param {HTMLCanvasElement} canvas 
@@ -19,9 +21,9 @@ export class CanvasRenderer {
         /** @type {number} Zoom level */
         this.cameraZoom = 1;
 
-        // Config constants
-        this.MAX_ZOOM = 5;
-        this.MIN_ZOOM = 0.1;
+        // Config constants (Now from Constants.js)
+        // this.MAX_ZOOM = CONFIG.maxZoom; // Accessed directly
+        // this.MIN_ZOOM = CONFIG.minZoom;
 
         this.imageCache = new Map();
         this.tempConnection = null;
@@ -76,7 +78,7 @@ export class CanvasRenderer {
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
-        ctx.strokeStyle = isSelected ? '#007bff' : '#999';
+        ctx.strokeStyle = isSelected ? COLORS.connectionSelected : COLORS.connectionNormal;
         ctx.lineWidth = isSelected ? (conn.weight || 1) + 2 : (conn.weight || 1);
         ctx.stroke();
 
@@ -105,8 +107,8 @@ export class CanvasRenderer {
         const ctx = this.ctx;
         const isSelected = (this.model.selectedElement && this.model.selectedElement.id === el.id);
 
-        ctx.fillStyle = el.color || '#ffffff';
-        ctx.strokeStyle = isSelected ? '#007bff' : '#333';
+        ctx.fillStyle = el.color || COLORS.background;
+        ctx.strokeStyle = isSelected ? COLORS.selection : COLORS.outline;
         ctx.lineWidth = isSelected ? 4 : 2;
 
         if (el.type === 'bubble') {
@@ -118,11 +120,14 @@ export class CanvasRenderer {
         }
     }
 
+    /**
+     * Draws a bubble element.
+     * @param {Object} el - The bubble element to draw.
+     * @param {CanvasRenderingContext2D} ctx - The canvas context.
+     */
     drawBubble(el, ctx) {
-        // Calculate required size based on text
-        // Fix: Use el.font directly if it looks like a full font string
-        // Otherwise fallback to constructing it
-        ctx.font = el.font && el.font.includes('px') ? el.font : `${el.fontSize}px ${el.font || 'Poppins'}`;
+        // Use el.font directly if it looks like a full font string, otherwise fallback to constructing it
+        ctx.font = el.font && el.font.includes('px') ? el.font : FONTS.fullString(el.fontSize, el.font);
         const lines = el.text.split('\n');
         let maxWidth = 0;
         lines.forEach(line => {
@@ -131,25 +136,18 @@ export class CanvasRenderer {
         });
 
         // Padding settings
-        const paddingX = 20;
-        const paddingY = 15;
+        const paddingX = CONFIG.bubblePaddingX;
+        const paddingY = CONFIG.bubblePaddingY;
         const lineHeight = el.fontSize * 1.2;
         const totalTextHeight = lines.length * lineHeight;
 
-        // Determine dimensions (Minimum 50/30, but grow if needed)
-        // Ellipse radius is half width/height
+        // Determine dimensions
         const requiredRadiusX = (maxWidth / 2) + paddingX;
         const requiredRadiusY = (totalTextHeight / 2) + paddingY;
 
-        // Use the larger of standard radius vs required
-        // We prefer the model's stored radius (if user resized manually in future), 
-        // but for now we assume defaults need to grow.
-        // MODIFIED: We force the size to match text content exactly (plus padding)
-        // This allows shrinking when text is reduced/broken into lines.
-        // Ideally we would track if "manually resized" but for now autosizing is primary.
-        // Also adding 5% extra breathing room
-        // Also adding 5% extra breathing room
-        // Allow shrinking below 50/30 if text is small. Use a smaller absolute min (e.g. 10) to avoid invisibility.
+        // Force the size to match text content exactly (plus padding) to allow autosizing.
+        // Adding 5% extra breathing room.
+        // Minimum size set to 10 to avoid visibility issues.
         el.radiusX = Math.max(10, requiredRadiusX * 1.05);
         el.radiusY = Math.max(10, requiredRadiusY * 1.05);
 
@@ -171,15 +169,21 @@ export class CanvasRenderer {
         });
 
         // Indicators
-        if (el.comment) this.drawIndicator(el.x + el.radiusX - 10, el.y - el.radiusY + 10, '...', '#007bff');
-        if (el.link) this.drawIndicator(el.x + el.radiusX - 10, el.y - el.radiusY + 20, '🔗', '#28a745');
+        if (el.comment) this.drawIndicator(el.x + el.radiusX - 10, el.y - el.radiusY + 10, '...', COLORS.commentIndicator);
+        if (el.link) this.drawIndicator(el.x + el.radiusX - 10, el.y - el.radiusY + 20, '🔗', COLORS.linkIndicator);
     }
 
+    /**
+     * Draws a text element.
+     * @param {Object} el - The text element.
+     * @param {CanvasRenderingContext2D} ctx - The canvas context.
+     * @param {boolean} isSelected - Whether the element is selected.
+     */
     drawText(el, ctx, isSelected) {
-        ctx.font = el.font && el.font.includes('px') ? el.font : `${el.fontSize || 16}px ${el.font || 'Poppins'}`;
+        ctx.font = el.font && el.font.includes('px') ? el.font : FONTS.fullString(el.fontSize || 16, el.font);
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillStyle = el.color || '#000'; // Ensure color is set
+        ctx.fillStyle = el.color || COLORS.defaultText; // Ensure color is set
         ctx.fillText(el.text, el.x, el.y);
 
         const textWidth = ctx.measureText(el.text).width;
@@ -188,15 +192,21 @@ export class CanvasRenderer {
         el.height = textHeight;
 
         if (isSelected) {
-            ctx.strokeStyle = '#007bff'; // Hardcoded selected color
+            ctx.strokeStyle = COLORS.selection; // Hardcoded selected color
             ctx.strokeRect(el.x - 2, el.y - 2, textWidth + 4, textHeight + 4);
         }
     }
 
+    /**
+     * Draws an image element.
+     * @param {Object} el - The image element.
+     * @param {CanvasRenderingContext2D} ctx - The canvas context.
+     * @param {boolean} isSelected - Whether the element is selected.
+     */
     drawImage(el, ctx, isSelected) {
         // Border if selected
         if (isSelected) {
-            ctx.fillStyle = '#f8f9fa';
+            ctx.fillStyle = COLORS.imageBorder;
             ctx.fillRect(el.x, el.y, el.width, el.height);
             ctx.strokeRect(el.x, el.y, el.width, el.height);
             this.drawResizeHandles(el, ctx);
@@ -223,8 +233,8 @@ export class CanvasRenderer {
         }
 
         // Indicators
-        if (el.comment) this.drawIndicator(el.x + el.width - 10, el.y + 10, '...', '#007bff');
-        if (el.link && el.link !== el.url) this.drawIndicator(el.x + el.width - 10, el.y + 20, '🔗', '#28a745');
+        if (el.comment) this.drawIndicator(el.x + el.width - 10, el.y + 10, '...', COLORS.commentIndicator);
+        if (el.link && el.link !== el.url) this.drawIndicator(el.x + el.width - 10, el.y + 20, '🔗', COLORS.linkIndicator);
     }
 
     drawIndicator(x, y, text, color) {
@@ -241,8 +251,8 @@ export class CanvasRenderer {
     }
 
     drawResizeHandles(el, ctx) {
-        const handleSize = 8;
-        ctx.fillStyle = '#007bff';
+        const handleSize = CONFIG.resizeHandleSize;
+        ctx.fillStyle = COLORS.resizeHandle;
         ctx.fillRect(el.x - handleSize / 2, el.y - handleSize / 2, handleSize, handleSize); // TL
         ctx.fillRect(el.x + el.width - handleSize / 2, el.y - handleSize / 2, handleSize, handleSize); // TR
         ctx.fillRect(el.x - handleSize / 2, el.y + el.height - handleSize / 2, handleSize, handleSize); // BL
@@ -250,14 +260,14 @@ export class CanvasRenderer {
     }
 
     drawImagePlaceholder(el, ctx) {
-        ctx.fillStyle = '#6c757d';
+        ctx.fillStyle = COLORS.imagePlaceholder;
         ctx.font = '16px Poppins';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('🖼️', el.x + el.width / 2, el.y + el.height / 2 - 10);
 
         const urlText = el.url.length > 20 ? el.url.substring(0, 20) + '...' : el.url;
-        ctx.fillStyle = '#495057';
+        ctx.fillStyle = COLORS.imagePlaceholderText;
         ctx.font = '12px Poppins';
         ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 10);
     }
@@ -308,7 +318,7 @@ export class CanvasRenderer {
         const scaleY = window.innerHeight / height;
 
         this.cameraZoom = Math.min(Math.min(scaleX, scaleY), 2); // Cap zoom at 2x
-        if (this.cameraZoom < 0.1) this.cameraZoom = 0.1;
+        if (this.cameraZoom < CONFIG.minZoom) this.cameraZoom = CONFIG.minZoom;
 
         // Centering
         this.cameraOffset.x = window.innerWidth / 2 - centerX * this.cameraZoom;
@@ -366,7 +376,7 @@ export class CanvasRenderer {
         ctx.beginPath();
         ctx.moveTo(temp.start.x, temp.start.y);
         ctx.lineTo(temp.end.x, temp.end.y);
-        ctx.strokeStyle = '#007bff';
+        ctx.strokeStyle = COLORS.connectionSelected;
         ctx.setLineDash([5, 5]);
         ctx.stroke();
         ctx.setLineDash([]); // Reset dash

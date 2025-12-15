@@ -2,6 +2,8 @@
  * @fileoverview Manages UI elements outside the canvas (Toolbar, Panels, Dialogs).
  */
 
+import { COLORS, FONTS, CONFIG } from '../Constants.js';
+
 export class UIManager {
     constructor(model, renderer, inputHandler) {
         this.model = model;
@@ -54,9 +56,7 @@ export class UIManager {
         });
 
         // Zoom Extents
-        bind('zoomExtentsBtn', () => {
-            // Calculate bounding box and update camera
-        });
+        bind('zoomExtentsBtn', () => this.zoomExtents());
 
         // Undo/Redo
         bind('undoBtn', () => {
@@ -131,15 +131,8 @@ export class UIManager {
         if (!paletteContainer) return;
 
         // Define palette colors
-        const colors = [
-            '#ffffff', // White
-            '#ffcccc', // Light Red
-            '#ccffcc', // Light Green
-            '#ccccff', // Light Blue
-            '#ffffcc', // Light Yellow
-            '#ffccff', // Light Purple
-            '#ccffff', // Light Cyan
-        ];
+        // Define palette colors
+        const colors = COLORS.palette;
 
         paletteContainer.innerHTML = '';
         colors.forEach(color => {
@@ -418,12 +411,12 @@ export class UIManager {
                         Object.assign(newElement, {
                             type: 'bubble',
                             radiusX: 50, radiusY: 30, // Default, will auto-size
-                            color: this.model.defaultColor || '#87CEEB'
+                            color: this.model.defaultColor || COLORS.defaultBubble
                         });
                     } else if (type === 'text') {
                         Object.assign(newElement, {
                             type: 'text',
-                            color: '#000000'
+                            color: COLORS.defaultText
                         });
                     }
 
@@ -522,13 +515,7 @@ export class UIManager {
             }
 
             // this.model.restoreState(scene); // Scenes are Viewport-only
-            if (scene.viewport && this.renderer) {
-                this.renderer.cameraZoom = scene.viewport.zoom;
-                this.renderer.cameraOffset = { ...scene.viewport.offset };
-                this.renderer.draw();
-            } else {
-                this.renderer.draw();
-            }
+            this.restoreSceneViewport(scene);
 
             // Highlight in list
             document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
@@ -550,7 +537,7 @@ export class UIManager {
             }
 
             // Schedule next with variable delay
-            const delay = scene.duration || 2000;
+            const delay = scene.duration || CONFIG.defaultSceneDuration;
 
             // Advance index for NEXT call
             index = (index + 1) % this.model.scenes.length;
@@ -577,17 +564,10 @@ export class UIManager {
         this.currentSceneIndex = (this.currentSceneIndex + 1) % this.model.scenes.length;
 
         // Restore
+        // Restore
         const scene = this.model.scenes[this.currentSceneIndex];
         // this.model.restoreState(scene); // Scenes are Viewport-only
-
-        // Apply viewport
-        if (scene.viewport && this.renderer) {
-            this.renderer.cameraZoom = scene.viewport.zoom;
-            this.renderer.cameraOffset = { ...scene.viewport.offset };
-            this.renderer.draw();
-        } else {
-            this.renderer.draw();
-        }
+        this.restoreSceneViewport(scene);
 
         // Highlight in list
         document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
@@ -653,8 +633,8 @@ export class UIManager {
                         this.renderScenesList();
                     }
                 }, 'action-rename');
-                createOption(`Duration (${(scene.duration || 2000) / 1000}s)`, () => {
-                    const input = prompt('Enter duration in seconds:', (scene.duration || 2000) / 1000);
+                createOption(`Duration (${(scene.duration || CONFIG.defaultSceneDuration) / 1000}s)`, () => {
+                    const input = prompt('Enter duration in seconds:', (scene.duration || CONFIG.defaultSceneDuration) / 1000);
                     if (input) {
                         const secs = parseFloat(input);
                         if (!isNaN(secs) && secs > 0) {
@@ -665,8 +645,12 @@ export class UIManager {
                 }, 'action-duration');
                 createOption('Delete', () => {
                     if (confirm(`Delete scene "${scene.name}"?`)) {
-                        this.model.scenes = this.model.scenes.filter(s => s.id !== scene.id);
-                        this.model.saveState();
+                        createOption('Delete', () => {
+                            if (confirm(`Delete scene "${scene.name}"?`)) {
+                                this.model.removeScene(scene.id);
+                                this.renderScenesList();
+                            }
+                        }, 'action-delete');
                         this.renderScenesList();
                     }
                 }, 'action-delete');
@@ -827,14 +811,7 @@ export class UIManager {
             nameSpan.title = scene.name; // Full name on hover
 
             item.onclick = () => {
-                // this.model.restoreState(scene); // Scenes are now Viewport-only
-                if (scene.viewport) {
-                    this.renderer.cameraZoom = scene.viewport.zoom;
-                    this.renderer.cameraOffset = { ...scene.viewport.offset };
-                    this.renderer.draw();
-                } else {
-                    this.renderer.draw();
-                }
+                this.restoreSceneViewport(scene);
 
                 document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
                 item.classList.add('selected');
@@ -851,7 +828,7 @@ export class UIManager {
             // Stopwatch (Duration)
             const timeBtn = document.createElement('button');
             timeBtn.textContent = '⏱️';
-            const currentSeconds = (scene.duration || 2000) / 1000;
+            const currentSeconds = (scene.duration || CONFIG.defaultSceneDuration) / 1000;
             timeBtn.title = `Delay: ${currentSeconds}s`;
             timeBtn.style.padding = '2px 5px';
             timeBtn.onclick = (e) => {
@@ -887,8 +864,7 @@ export class UIManager {
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
                 if (confirm(`Delete scene "${scene.name}"?`)) {
-                    this.model.scenes.splice(index, 1);
-                    this.model.saveState();
+                    this.model.removeScene(scene.id);
                     this.renderScenesList();
                 }
             };
@@ -923,6 +899,78 @@ export class UIManager {
                     largePlayBtn.title = 'Play Scenes';
                 }
             }
+        }
+    }
+
+    /**
+     * Zooms the camera to fit all elements in the view.
+     */
+    zoomExtents() {
+        if (this.model.elements.length === 0) return;
+
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+
+        this.model.elements.forEach(el => {
+            // Check bounding box of element
+            // For simple calculation, just use center x/y and some rough size padding
+            // Better: use exact dimensions
+            const w = el.width || (el.radiusX * 2) || 100;
+            const h = el.height || (el.radiusY * 2) || 50;
+            const x = el.x;
+            const y = el.y;
+
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x + w > maxX) maxX = x + w;
+            if (y + h > maxY) maxY = y + h;
+        });
+
+        if (minX === Infinity) return;
+
+        // Add padding
+        const padding = 50;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
+
+        const width = maxX - minX;
+        const height = maxY - minY;
+
+        // Calculate zoom
+        const canvasW = this.renderer.canvas.width;
+        const canvasH = this.renderer.canvas.height;
+
+        const zoomX = canvasW / width;
+        const zoomY = canvasH / height;
+        const zoom = Math.min(zoomX, zoomY);
+
+        // Clamp zoom
+        this.renderer.cameraZoom = Math.min(Math.max(zoom, CONFIG.minZoom), 2.0); // Don't zoom in *too* much on single item
+
+        // Center
+        const centerX = minX + width / 2;
+        const centerY = minY + height / 2;
+
+        this.renderer.cameraOffset.x = (canvasW / 2) - (centerX * this.renderer.cameraZoom);
+        this.renderer.cameraOffset.y = (canvasH / 2) - (centerY * this.renderer.cameraZoom);
+
+        this.renderer.draw();
+    }
+
+    /**
+     * Helper to restore a scene's viewport to the renderer.
+     * @param {Object} scene 
+     */
+    restoreSceneViewport(scene) {
+        if (!scene) return;
+        if (scene.viewport && this.renderer) {
+            this.renderer.cameraZoom = scene.viewport.zoom;
+            this.renderer.cameraOffset = { ...scene.viewport.offset };
+        }
+        if (this.renderer) {
+            this.renderer.draw();
         }
     }
 

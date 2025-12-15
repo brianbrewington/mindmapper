@@ -4,6 +4,11 @@
  */
 
 export class PersistenceManager {
+    /**
+     * @param {MindMapModel} model - The data model.
+     * @param {CanvasRenderer} renderer - The canvas renderer.
+     * @param {UIManager} uiManager - The UI manager.
+     */
     constructor(model, renderer, uiManager) {
         this.model = model;
         this.renderer = renderer;
@@ -12,6 +17,9 @@ export class PersistenceManager {
         this.setupHandlers();
     }
 
+    /**
+     * Sets up DOM event listeners for save/load operations.
+     */
     setupHandlers() {
         document.getElementById('saveBtn').addEventListener('click', () => this.saveJSON());
         document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('loadFile').click());
@@ -33,6 +41,14 @@ export class PersistenceManager {
                 if (this.uiManager && this.uiManager.renderScenesList) {
                     this.uiManager.renderScenesList();
                 }
+
+                // Ensure content is visible
+                if (this.uiManager && this.uiManager.zoomExtents) {
+                    this.uiManager.zoomExtents();
+                } else if (this.renderer) {
+                    this.renderer.draw();
+                }
+
                 console.log('Embedded data loaded.');
             } catch (e) {
                 console.error('Error loading embedded data:', e);
@@ -71,7 +87,9 @@ export class PersistenceManager {
     }
 
     /**
-     * Creates the self-contained bundle.
+     * Creates a self-contained HTML bundle ("Quine").
+     * Reads the current page's HTML, injects the current model data into it,
+     * and triggers a download of the new HTML file.
      */
     createBundle() {
         console.log('Creating bundle...');
@@ -83,14 +101,13 @@ export class PersistenceManager {
             scenes: this.model.scenes,
             timestamp: new Date().toISOString()
         };
-        const dataString = JSON.stringify(data);
-        const encodedData = btoa(unescape(encodeURIComponent(dataString)));
+
 
         // 2. Get Current page HTML
         // In dev mode, we might not have a single file. 
         // But in the BUILT version (which is what the user distributes), 
         // document.documentElement.outerHTML contains the inlined app.
-        let html = document.documentElement.outerHTML;
+
 
         // 3. Inject Persistence Logic Variable
         // We look for a placeholder or just inject it at the top of the script
@@ -102,15 +119,8 @@ export class PersistenceManager {
         // Actually, to make it robust:
         // We should inject a script tag defining the variable right before the main logic runs.
 
-        // Simple Regex replacement if the variable exists
-        if (html.includes('const embeddedDataEncoded =')) {
-            html = html.replace(/const embeddedDataEncoded = '[^']*';/, `const embeddedDataEncoded = '${encodedData}';`);
-        } else {
-            // If not present (e.g. first separate build), inject it into head or body
-            // We can put it in a script block before the main module
-            const injection = `<script>window.embeddedDataEncoded = '${encodedData}';</script>`;
-            html = html.replace('</head>', `${injection}</head>`);
-        }
+        // 3. Generate HTML
+        const html = PersistenceManager.generateBundleHTML(document.documentElement.outerHTML, data);
 
         this.downloadFile(html, `mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, 'text/html');
     }
@@ -126,4 +136,38 @@ export class PersistenceManager {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
+
+    /**
+     * Pure helper to generate the HTML bundle string.
+     * @param {string} originalHtml 
+     * @param {Object} data 
+     * @returns {string} The new HTML with embedded data.
+     */
+    static generateBundleHTML(originalHtml, data) {
+        const dataString = JSON.stringify(data);
+        const encodedData = btoa(unescape(encodeURIComponent(dataString)));
+
+        let html = originalHtml;
+        // Simple Regex replacement if the variable exists
+        if (html.includes('const embeddedDataEncoded =')) {
+            html = html.replace(/const embeddedDataEncoded = '[^']*';/, `const embeddedDataEncoded = '${encodedData}';`);
+        } else {
+            // Check for window.embeddedDataEncoded injection style (legacy or manual)
+            // Or our preferred method: const embeddedDataEncoded = '...'; in main.js
+            // But main.js is a module, so globals are tricky.
+            // Best bet: Inject a script tag in HEAD.
+
+            // Removing old style injection if present to prevent duplicates (rudimentary check)
+            // (omitted for simplicity, assuming clean state or standard injection)
+
+            const injection = `<script>window.embeddedDataEncoded = '${encodedData}';</script>`;
+            if (html.includes('</head>')) {
+                html = html.replace('</head>', `${injection}</head>`);
+            } else {
+                html = injection + html;
+            }
+        }
+        return html;
+    }
 }
+

@@ -1,3 +1,5 @@
+import { FONTS, CONFIG } from '../Constants.js';
+
 /**
  * @fileoverview Handles Input logic (Mouse/Keyboard).
  * Maps raw DOM events to logical actions on the Model/View.
@@ -163,13 +165,13 @@ export class InputHandler {
                 selected.fontSize = Math.max(8, selected.fontSize + (direction * 2));
                 // Update font string safely
                 // Ensure we keep the font family if possible, or default to 'Poppins'
-                let fontFamily = 'Poppins';
+                let fontFamily = FONTS.family;
                 if (selected.font) {
                     // Try to preserve existing family
                     const match = selected.font.match(/px\s+(.*)$/);
                     if (match && match[1]) fontFamily = match[1];
                 }
-                selected.font = `${selected.fontSize}px ${fontFamily}`;
+                selected.font = FONTS.fullString(selected.fontSize, fontFamily);
             }
 
             // Bubble Specific (Radius)
@@ -201,7 +203,7 @@ export class InputHandler {
         const zoomAmount = e.deltaY * sensitivity;
         const worldBefore = this.renderer.screenToWorld(e.clientX, e.clientY);
 
-        this.renderer.cameraZoom = Math.max(0.1, Math.min(5, this.renderer.cameraZoom - zoomAmount));
+        this.renderer.cameraZoom = Math.max(CONFIG.minZoom, Math.min(CONFIG.maxZoom, this.renderer.cameraZoom - zoomAmount));
 
         const worldAfter = this.renderer.screenToWorld(e.clientX, e.clientY);
         this.renderer.cameraOffset.x += (worldAfter.x - worldBefore.x) * this.renderer.cameraZoom;
@@ -347,7 +349,7 @@ export class InputHandler {
         }
 
         // Check connections
-        const threshold = 10 / this.renderer.cameraZoom; // 10px tolerance
+        const threshold = CONFIG.connectionHitThreshold / this.renderer.cameraZoom; // 10px tolerance
         for (let i = this.model.connections.length - 1; i >= 0; i--) {
             const conn = this.model.connections[i];
             const from = this.model.elements.find(e => e.id === conn.from);

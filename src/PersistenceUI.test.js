@@ -16,8 +16,8 @@ describe('Persistence Manager UI Integration', () => {
         model = new MindMapModel();
         model.restoreState = vi.fn();
 
-        renderer = { draw: vi.fn() };
-        uiManager = { renderScenesList: vi.fn() };
+        renderer = { draw: vi.fn(), canvas: { width: 800, height: 600 }, cameraOffset: { x: 0, y: 0 } };
+        uiManager = { renderScenesList: vi.fn(), zoomExtents: vi.fn() };
 
         persistenceManager = new PersistenceManager(model, renderer, uiManager);
     });
@@ -56,6 +56,7 @@ describe('Persistence Manager UI Integration', () => {
 
         expect(model.restoreState).toHaveBeenCalled();
         expect(uiManager.renderScenesList).toHaveBeenCalled();
+        expect(uiManager.zoomExtents).toHaveBeenCalled();
 
         // Cleanup
         delete window.embeddedDataEncoded;

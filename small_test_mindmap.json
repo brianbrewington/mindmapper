@@ -1,0 +1,74 @@
+{
+  "elements": [
+    {
+      "id": 1765755483973,
+      "x": -271.5,
+      "y": -345,
+      "text": "asdf",
+      "fontSize": 16,
+      "font": "16px Poppins",
+      "type": "bubble",
+      "radiusX": 39.50518455505371,
+      "radiusY": 25.830000000000002,
+      "color": "#87CEEB"
+    },
+    {
+      "id": 1765755485105,
+      "x": -127.5,
+      "y": -235,
+      "text": "asdf",
+      "fontSize": 36,
+      "font": "36px Poppins",
+      "type": "bubble",
+      "radiusX": 62.63669128417969,
+      "radiusY": 38.42999999999999,
+      "color": "#ccccff",
+      "link": "http://www.google.com"
+    },
+    {
+      "id": 1765755497671,
+      "x": -171,
+      "y": -369,
+      "text": "comment",
+      "fontSize": 24,
+      "font": "24px Poppins",
+      "type": "text",
+      "color": "#000000",
+      "width": 118.34391784667969,
+      "height": 24
+    }
+  ],
+  "connections": [
+    {
+      "id": 1765755492570.0134,
+      "from": 1765755483973,
+      "to": 1765755485105,
+      "weight": 1
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1765755508252,
+      "name": "full scene",
+      "viewport": {
+        "zoom": 2,
+        "offset": {
+          "x": 1394.368493270874,
+          "y": 1233.57
+        }
+      }
+    },
+    {
+      "id": 1765755511574,
+      "name": "asdf big",
+      "viewport": {
+        "zoom": 4.179647827148437,
+        "offset": {
+          "x": 1633.4841154411774,
+          "y": 1712.406364739067
+        }
+      }
+    }
+  ],
+  "version": "1.0"
+}

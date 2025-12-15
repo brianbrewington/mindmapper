@@ -144,8 +144,8 @@ export class MindMapModel {
      */
     /**
      * Restores the model from a state object.
-     * @param {Object} state 
-     * @param {boolean} pushToHistory - Whether to save this restored state to history (default false for simple restores, true for loads)
+     * @param {Object} state - The state object containing elements, connection, and scene data.
+     * @param {boolean} [pushToHistory=false] - Whether to save this restored state to history (default false).
      */
     restoreState(state, pushToHistory = false) {
         if (!state) return;
@@ -191,22 +191,24 @@ export class MindMapModel {
     }
 
     /**
+     * Removes a scene by ID.
+     * @param {number} id 
+     */
+    removeScene(id) {
+        this.scenes = this.scenes.filter(s => s.id !== id);
+        this.saveState();
+    }
+
+    /**
      * Restores the model to a scene's viewpoint.
-     * Does NOT restore elements or connections (Global State).
-     * @param {Object} scene
+     * Note: This method currently only prepares the scene data. The actual camera movement
+     * is handled by the UIManager/Renderer when they detect the scene change or via direct viewport application.
+     * @param {Object} scene - The scene object to restore.
      */
     restoreScene(scene) {
         if (!scene) return;
-        if (scene.viewport) {
-            // Assuming viewport contains cameraZoom and cameraOffset/Offset
-            // But the model doesn't track camera directly? Contains 'viewport'?
-            // Wait, renderer tracks camera. Model usually just holds data.
-            // But restoreState implied model holds it?
-            // Let's check restoreState source again. 
-            // restoreState didn't show viewport restoration in snippet 728!
-            // It only showed elements, connections, scenes.
-            // Where is viewport restored?
-        }
+        // Viewport restoration is handled by the consumer (UIManager/Renderer)
+        // because the Model does not maintain camera state directly.
     }
 
     /**
