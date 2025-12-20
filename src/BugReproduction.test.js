@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
 import { PersistenceManager } from './io/PersistenceManager.js';
+import { Modal } from './view/Modal.js';
 
 describe('Bug Reproduction', () => {
     let model, renderer, uiManager, persistenceManager;
@@ -81,7 +82,7 @@ describe('Bug Reproduction', () => {
     });
 
     // Bug 2: New Button does not clear scenes
-    it('should clear scenes list UI when New button is clicked', () => {
+    it('should clear scenes list UI when New button is clicked', async () => {
         // 1. Setup Model with Scenes
         model.addScene("Scene 1", {});
         uiManager.renderScenesList();
@@ -90,17 +91,20 @@ describe('Bug Reproduction', () => {
         expect(list.children.length).toBe(1);
 
         // 2. Click New
-        // Mock confirm to return true
-        vi.spyOn(window, 'confirm').mockImplementation(() => true);
+        // 2. Click New
+        // Mock Modal.showConfirm to return true
+        const confirmSpy = vi.spyOn(Modal, 'showConfirm').mockResolvedValue(true);
 
         const newBtn = document.getElementById('newBtn');
         newBtn.click();
+
+        // Wait for promise resolution (microtask queue)
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         // 3. Assert Model is cleared
         expect(model.scenes).toHaveLength(0);
 
         // 4. Assert UI is cleared (The Bug)
-        // This is expected to FAIL currently
         expect(list.children.length).toBe(0);
     });
 });

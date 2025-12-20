@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
 import { InputHandler } from './controller/InputHandler.js';
+import { Modal } from './view/Modal.js';
 
 describe('Comment System Fixes', () => {
     let uiManager, model, renderer, inputHandler;
@@ -192,7 +193,7 @@ describe('Comment System Fixes', () => {
         expect(display.textContent).toBe('Persistent Comment');
     });
 
-    it('should allow adding links to connections', () => {
+    it('should allow adding links to connections', async () => {
         const c1 = { id: 'c1', from: 'b1', to: 'b2', type: 'connection' };
         model.connections.push(c1);
 
@@ -208,9 +209,10 @@ describe('Comment System Fixes', () => {
         expect(linkAction).toBeTruthy();
 
         // Mock prompt
-        vi.spyOn(window, 'prompt').mockReturnValue('http://example.com');
+        vi.spyOn(Modal, 'showPrompt').mockResolvedValue('http://example.com');
 
         linkAction.click();
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         // Verify Model
         expect(c1.link).toBe('http://example.com');

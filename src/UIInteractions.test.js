@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { InputHandler } from './controller/InputHandler.js';
 import { PersistenceManager } from './io/PersistenceManager.js';
+import { Modal } from './view/Modal.js';
 
 describe('UI Interactions Audit', () => {
     let model, renderer, uiManager, inputHandler, persistenceManager;
@@ -150,9 +151,10 @@ describe('UI Interactions Audit', () => {
             // Add assertion based on implementation intent (e.g. renderer.zoomToFit())
         });
 
-        it('should handle New Mindmap', () => {
-            const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+        it('should handle New Mindmap', async () => {
+            const confirmSpy = vi.spyOn(Modal, 'showConfirm').mockResolvedValue(true);
             triggerClick('newBtn');
+            await new Promise(resolve => setTimeout(resolve, 0));
             expect(confirmSpy).toHaveBeenCalled();
             expect(model.elements.length).toBe(0);
         });
@@ -198,7 +200,7 @@ describe('UI Interactions Audit', () => {
     });
 
     describe('Context Menu Items', () => {
-        it('should have listeners for all context actions', () => {
+        it('should have listeners for all context actions', async () => {
             // Setup context and OPEN menu to bind listeners
             const detail = {
                 x: 100, y: 100,
@@ -233,8 +235,9 @@ describe('UI Interactions Audit', () => {
             expect(modal.style.display).toBe('flex');
 
             // Link
-            const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('http://example.com');
+            const promptSpy = vi.spyOn(Modal, 'showPrompt').mockResolvedValue('http://example.com');
             document.querySelector('[data-id="action-link"]').click();
+            await new Promise(resolve => setTimeout(resolve, 0));
             expect(promptSpy).toHaveBeenCalled();
             expect(uiManager.currentContextHit.element.link).toBe('http://example.com');
         });

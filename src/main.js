@@ -32,6 +32,7 @@ export function initApp() {
 
     // 4. Initialize UI Manager (Buttons, Panels)
     const uiManager = new UIManager(model, renderer, inputHandler);
+    inputHandler.setUIManager(uiManager);
 
     // 5. Initialize Persistence (Load/Save/Bundle)
     const persistenceManager = new PersistenceManager(model, renderer, uiManager);

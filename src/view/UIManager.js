@@ -3,6 +3,7 @@
  */
 
 import { COLORS, FONTS, CONFIG } from '../Constants.js';
+import { Modal } from './Modal.js';
 
 export class UIManager {
     constructor(model, renderer, inputHandler) {
@@ -23,6 +24,39 @@ export class UIManager {
 
         this.currentSceneIndex = -1;
         this.isPlaying = false;
+
+        this.setupTooltip();
+    }
+
+    setupTooltip() {
+        this.tooltip = document.createElement('div');
+        this.tooltip.id = 'ui-tooltip';
+        this.tooltip.style.cssText = `
+            position: absolute;
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 200px;
+            word-wrap: break-word;
+        `;
+        document.body.appendChild(this.tooltip);
+    }
+
+    updateTooltip(x, y, text) {
+        if (!this.tooltip) return;
+        this.tooltip.textContent = text;
+        this.tooltip.style.left = (x + 10) + 'px';
+        this.tooltip.style.top = (y + 10) + 'px';
+        this.tooltip.style.display = 'block';
+    }
+
+    hideTooltip() {
+        if (this.tooltip) this.tooltip.style.display = 'none';
     }
 
     updateUndoRedoButtons() {
@@ -318,9 +352,9 @@ export class UIManager {
             },
             LINK: {
                 id: 'action-link', label: 'Add Link', icon: '🔗',
-                action: () => {
+                action: async () => {
                     const target = getTarget();
-                    const url = prompt('Enter URL:', target.link || '');
+                    const url = await Modal.showPrompt('Enter URL:', target.link || '');
                     if (url !== null) target.link = url;
                 }
             }
@@ -630,16 +664,16 @@ export class UIManager {
         if (hit) {
             if (hit.type === 'scene') {
                 const scene = hit.scene;
-                createOption('Rename', () => {
-                    const name = prompt('Rename Scene:', scene.name);
+                createOption('Rename', async () => {
+                    const name = await Modal.showPrompt('Rename Scene:', scene.name);
                     if (name) {
                         scene.name = name;
                         this.model.saveState();
                         this.renderScenesList();
                     }
                 }, 'action-rename');
-                createOption(`Duration (${(scene.duration || CONFIG.defaultSceneDuration) / 1000}s)`, () => {
-                    const input = prompt('Enter duration in seconds:', (scene.duration || CONFIG.defaultSceneDuration) / 1000);
+                createOption(`Duration (${(scene.duration || CONFIG.defaultSceneDuration) / 1000}s)`, async () => {
+                    const input = await Modal.showPrompt('Enter duration in seconds:', (scene.duration || CONFIG.defaultSceneDuration) / 1000);
                     if (input) {
                         const secs = parseFloat(input);
                         if (!isNaN(secs) && secs > 0) {
@@ -648,14 +682,9 @@ export class UIManager {
                         }
                     }
                 }, 'action-duration');
-                createOption('Delete', () => {
-                    if (confirm(`Delete scene "${scene.name}"?`)) {
-                        createOption('Delete', () => {
-                            if (confirm(`Delete scene "${scene.name}"?`)) {
-                                this.model.removeScene(scene.id);
-                                this.renderScenesList();
-                            }
-                        }, 'action-delete');
+                createOption('Delete', async () => {
+                    if (await Modal.showConfirm(`Delete scene "${scene.name}"?`)) {
+                        this.model.removeScene(scene.id);
                         this.renderScenesList();
                     }
                 }, 'action-delete');
@@ -717,11 +746,18 @@ export class UIManager {
                         actions.push({
                             label: 'Link',
                             id: 'action-link',
-                            action: () => {
-                                const url = prompt('Enter URL:', el.link || 'http://');
+                            action: async () => {
+                                const url = await Modal.showPrompt('Enter URL:', el.link || 'http://');
                                 if (url) {
-                                    el.link = url;
-                                    this.model.saveState();
+                                    // Basic URL Validation
+                                    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                                    if (urlPattern.test(url)) {
+                                        el.link = url;
+                                        this.model.saveState();
+                                        this.renderer.draw();
+                                    } else {
+                                        await Modal.showAlert('Invalid URL format. Please enter a valid web address.');
+                                    }
                                 }
                             }
                         });
@@ -789,16 +825,23 @@ export class UIManager {
                     actions.push({
                         label: 'Link',
                         id: 'action-link',
-                        action: () => {
-                            const url = prompt('Enter link URL:', conn.link || '');
+                        action: async () => {
+                            const url = await Modal.showPrompt('Enter link URL:', conn.link || '');
                             if (url !== null) { // User didn't cancel
-                                if (this.model.updateConnection) {
-                                    this.model.updateConnection(conn.id, { link: url });
+                                if (!url) return; // Allow empty? Or just ignore? If empty prompt, maybe clear? Prompt returns empty string.
+
+                                const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                                if (urlPattern.test(url)) {
+                                    if (this.model.updateConnection) {
+                                        this.model.updateConnection(conn.id, { link: url });
+                                    } else {
+                                        Object.assign(conn, { link: url });
+                                        this.model.saveState();
+                                    }
+                                    this.renderer.draw();
                                 } else {
-                                    Object.assign(conn, { link: url });
-                                    this.model.saveState();
+                                    await Modal.showAlert('Invalid URL format.');
                                 }
-                                this.renderer.draw();
                             }
                         }
                     });

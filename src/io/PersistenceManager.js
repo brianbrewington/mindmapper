@@ -3,6 +3,8 @@
  * Contains the logic for the "Quine" bundle creation.
  */
 
+import { Modal } from '../view/Modal.js';
+
 export class PersistenceManager {
     /**
      * @param {MindMapModel} model - The data model.
@@ -25,7 +27,7 @@ export class PersistenceManager {
         document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('loadFile').click());
         document.getElementById('loadFile').addEventListener('change', (e) => this.loadJSON(e));
         document.getElementById('bundleBtn').addEventListener('click', () => this.createBundle());
-        document.getElementById('newBtn').addEventListener('click', () => this.newMap());
+        document.getElementById('newBtn').addEventListener('click', async () => this.newMap());
     }
 
     /**
@@ -58,8 +60,8 @@ export class PersistenceManager {
         this.downloadFile(JSON.stringify(data, null, 2), 'mindmap.json', 'application/json');
     }
 
-    newMap() {
-        if (confirm('Start new mind map? Unsaved changes will be lost.')) {
+    async newMap() {
+        if (await Modal.showConfirm('Start new mind map? Unsaved changes will be lost.')) {
             const emptyState = {
                 elements: [],
                 connections: [],

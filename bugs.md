@@ -20,20 +20,20 @@ Format: `- [ ] Description (File/Context)`
 - [x] **Color Buttons Broken**: The color palette buttons do not work for bubbles at all. (Fixed 2025-12-14: Implemented `defaultColor` and `updateElement` in Model)
 - [ ] **Force Layout Action**: Button exists but logs to console. Need physics engine. I wonder if there is a way to make a "dark theme"? 
 - [ ] **Complete Resize Logic**: `InputHandler.js` only handles `top-left` resizing; other handles are missing/simplified.
-- [ ] **Fix Ghost Connection Drawing**: `CanvasRenderer.js` relies on `InputHandler` to draw the temp connection line. This violates separation of concerns.
+- [x] **Fix Ghost Connection Drawing**: `CanvasRenderer.js` no longer relies on `InputHandler` drawing directly. `InputHandler` sets state, `CanvasRenderer` draws. (Fixed 2025-12-13)
 
 
 ### Architectural Issues
 - [ ] **Fix UIManager Encapsulation**: `UIManager` directly resets `model.elements = []`. Use `model.clear()` instead.
 - [ ] **Fix Undo/Redo State Issue**: `BugReproduction.test.js` suggests `undo()` might vanish elements after a load if history isn't synced correctly.
 - [ ] **Decouple Renderer Selection**: `CanvasRenderer` accesses `model.selectedElement` directly (marked as hacky). Should be passed in or handled via state.
-- [ ] **Fragile Bundle Creation**: `PersistenceManager` uses regex replacement (`html.replace`) to inject data. This is brittle to code formatting changes.
-- [ ] **Hardcoded Visuals**: Fonts ("Poppins") and magic numbers (padding 20/15) are hardcoded in `CanvasRenderer`.
+- [x] **Fragile Bundle Creation**: `PersistenceManager` uses robust `decodeURIComponent` and safe injection. (Fixed 2025-12-19)
+- [x] **Hardcoded Visuals**: Fonts and magic numbers are now in `src/Constants.js`, mostly used by `CanvasRenderer`. (Fixed 2025-12-14)
 - [ ] **Missing Error Handling**: Image loading failures leave elements in 'loading' state indefinitely or silently fail.
 
 
 ### UX / Polish
-- [ ] **Replace Blocking Prompts**: `UIManager` uses `confirm()` and `prompt()`. Replace with custom non-blocking modals (as noted in IDEA comments).
+- [x] **Replace Blocking Prompts**: `UIManager` uses `confirm()` and `prompt()`. Replaced with custom `Modal` class. (2025-12-19)
 
 ## 🚀 Features & Enhancements
 

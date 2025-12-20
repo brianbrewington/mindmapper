@@ -22,9 +22,18 @@ export class InputHandler {
         this.resizingElement = null;
         this.resizeHandle = null;
 
+        this.clipboard = null;
         this.connectionStartElement = null;
 
         this.setupEventListeners();
+    }
+
+    setUIManager(uiManager) {
+        this.uiManager = uiManager;
+    }
+
+    setUIManager(uiManager) {
+        this.uiManager = uiManager;
     }
 
     setupEventListeners() {
@@ -76,10 +85,25 @@ export class InputHandler {
                 this.resizeHandle = result.handle;
                 this.startDrag(pos);
             } else if (result.type === 'element') {
+                // Navigation (Alt + Click)
+                if (e.altKey && result.element.link) {
+                    let url = result.element.link;
+                    if (!url.startsWith('http')) url = 'http://' + url;
+                    window.open(url, '_blank');
+                    return;
+                }
+
                 this.model.selectedElement = result.element;
                 this.draggedElement = result.element;
                 this.startDrag(pos);
             } else if (result.type === 'connection') {
+                // Navigation (Alt + Click)
+                if (e.altKey && result.connection.link) {
+                    let url = result.connection.link;
+                    if (!url.startsWith('http')) url = 'http://' + url;
+                    window.open(url, '_blank');
+                    return;
+                }
                 this.model.selectedElement = result.connection;
             } else {
                 this.model.selectedElement = null; // Deselect
@@ -120,6 +144,18 @@ export class InputHandler {
             this.renderer.setTempConnection(this.connectionStartElement, worldMouse.x, worldMouse.y);
             this.renderer.draw();
             return;
+        }
+
+        // Tooltips
+        if (this.uiManager) {
+            const hit = this.hitTest(e.clientX, e.clientY);
+            if (hit.type === 'element' && hit.element.comment) {
+                this.uiManager.updateTooltip(e.clientX, e.clientY, hit.element.comment);
+            } else if (hit.type === 'connection' && hit.connection.comment) {
+                this.uiManager.updateTooltip(e.clientX, e.clientY, hit.connection.comment);
+            } else {
+                this.uiManager.hideTooltip();
+            }
         }
 
         if (!this.isDragging) return;
@@ -305,6 +341,45 @@ export class InputHandler {
         if (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_') {
             const isGrow = (e.key === '=' || e.key === '+');
             this.handleResizeShortcut(isGrow ? 1 : -1);
+        }
+
+        // Copy / Paste
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'c' || e.key === 'C')) {
+            this.handleCopy();
+            e.preventDefault();
+        }
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'v' || e.key === 'V')) {
+            this.handlePaste();
+            e.preventDefault();
+        }
+    }
+
+    handleCopy() {
+        if (this.model.selectedElement) {
+            // Deep copy to avoid reference issues
+            this.clipboard = JSON.parse(JSON.stringify(this.model.selectedElement));
+        }
+    }
+
+    handlePaste() {
+        if (this.clipboard) {
+            const newElement = JSON.parse(JSON.stringify(this.clipboard));
+            // New ID
+            newElement.id = Date.now() + Math.random();
+            // Offset position
+            if (newElement.x !== undefined && newElement.y !== undefined) {
+                newElement.x += 20;
+                newElement.y += 20;
+            }
+            // If it's a connection, we probably shouldn't paste it as-is unless we copy endpoints?
+            // For now, let's only support ELEMENTS (bubbles, text, images).
+            // Connections usually need from/to which might not be relevant if we just copy a connection.
+            // Let's restrict to elements with x/y.
+            if (newElement.x !== undefined && newElement.y !== undefined) {
+                this.model.addElement(newElement);
+                this.model.selectedElement = newElement;
+                this.renderer.draw();
+            }
         }
     }
 
