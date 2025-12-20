@@ -260,6 +260,19 @@ export class MindMapModel {
     }
 
     /**
+     * Updates a connection's properties.
+     * @param {string|number} id - Connection ID.
+     * @param {Object} props - Properties to update.
+     */
+    updateConnection(id, props) {
+        const conn = this.connections.find(c => c.id === id);
+        if (conn) {
+            Object.assign(conn, props);
+            this.saveState();
+        }
+    }
+
+    /**
      * Sets the default color for new bubbles.
      * @param {string} color 
      */

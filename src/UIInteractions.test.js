@@ -220,7 +220,8 @@ describe('UI Interactions Audit', () => {
             // Grow
             document.querySelector('[data-id="action-grow"]').click();
             // Check model or element update? 
-            expect(uiManager.currentContextHit.element.radiusX).toBeGreaterThan(50);
+            // Expect font size to increase (default 16 + 2)
+            expect(uiManager.currentContextHit.element.fontSize).toBe(18);
 
             // Shrink
             document.querySelector('[data-id="action-shrink"]').click();

@@ -163,7 +163,8 @@ export class UIManager {
             editBtn.addEventListener('click', () => {
                 display.style.display = 'none';
                 input.style.display = 'block';
-                input.value = this.model.selectedElement.text; // Load current text
+                const target = this.commentTarget || this.model.selectedElement;
+                input.value = target ? (target.comment || '') : '';
                 input.focus();
                 editBtn.style.display = 'none';
                 saveBtn.style.display = 'inline-block';
@@ -173,18 +174,30 @@ export class UIManager {
         // Save
         if (saveBtn) {
             saveBtn.addEventListener('click', () => {
-                const newText = input.value;
-                if (this.model.selectedElement) {
-                    this.model.updateElement(this.model.selectedElement.id, { text: newText }); // Wait, is this comment or text?
-                    // The modal is for generic "Comment" or "Text"? 
-                    // Previously it seemed to edit 'text'.
-                    // Comment modal usually edits 'note' or 'comment' property. 
-                    // Looking at code: `input.value = this.model.selectedElement.text`.
-                    // It seems this modal is re-purposed or poorly named. It says "Comment Modal" but edits text?
-                    // Safe guard anyway.
-                    this.model.updateElement(this.model.selectedElement.id, { text: newText });
+                const newComment = input.value;
+                const target = this.commentTarget || this.model.selectedElement;
+
+                if (target) {
+                    if (target.type === 'connection' || target.from) {
+                        // Check if model supports connection updates, else fallback or add method
+                        if (this.model.updateConnection) {
+                            this.model.updateConnection(target.id, { comment: newComment });
+                        } else {
+                            // Fallback if method missing (though we added it)
+                            Object.assign(target, { comment: newComment });
+                            this.model.saveState();
+                        }
+                    } else {
+                        this.model.updateElement(target.id, { comment: newComment });
+                    }
+
+                    // Visual feedback updates (indicators) are automatic if we re-render, 
+                    // but we might need to manually trigger draw if updateElement doesn't (it saves state but maybe doesn't trigger generic draw?)
+                    // model.updateElement saves state. Renderer needs to draw.
+                    this.renderer.draw();
                 }
-                display.textContent = newText;
+
+                display.textContent = newComment;
                 display.style.display = 'block';
                 input.style.display = 'none';
                 saveBtn.style.display = 'none';
@@ -655,23 +668,49 @@ export class UIManager {
                     const el = hit.element;
                     if (el.type === 'bubble') {
                         actions.push({ label: 'Edit', id: 'action-edit', action: () => this.showInputAt(el.x, el.y, el.text, el) });
-                        actions.push({ label: 'Grow', id: 'action-grow', action: () => { el.width *= 1.1; el.height *= 1.1; if (el.radiusX) { el.radiusX *= 1.1; el.radiusY *= 1.1; } this.model.saveState(); this.renderer.draw(); } });
-                        actions.push({ label: 'Shrink', id: 'action-shrink', action: () => { el.width *= 0.9; el.height *= 0.9; if (el.radiusX) { el.radiusX *= 0.9; el.radiusY *= 0.9; } this.model.saveState(); this.renderer.draw(); } });
+                        actions.push({
+                            label: 'Grow',
+                            id: 'action-grow',
+                            action: () => {
+                                el.fontSize = (el.fontSize || 16) + 2;
+                                // Basic font update - ideally reuse logic but this is safe for now
+                                el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Poppins, sans-serif'}`;
+                                this.model.saveState();
+                                this.renderer.draw();
+                            }
+                        });
+                        actions.push({
+                            label: 'Shrink',
+                            id: 'action-shrink',
+                            action: () => {
+                                el.fontSize = Math.max(8, (el.fontSize || 16) - 2);
+                                el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Poppins, sans-serif'}`;
+                                this.model.saveState();
+                                this.renderer.draw();
+                            }
+                        });
                         actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeElement(el.id) });
                         actions.push({
                             label: 'Comment',
                             id: 'action-comment',
                             action: () => {
-                                this.model.selectedElement = el; // Ensure selection for saving
+                                this.commentTarget = el;
+                                this.model.selectedElement = el; // Keep selection for visual feedback if desired
                                 const modal = document.getElementById('commentModal');
                                 if (modal) {
                                     const display = document.getElementById('commentDisplay');
-                                    const input = document.getElementById('commentEditInput'); // Assuming id
-                                    // Logic usually handled by setupCommentModal? 
-                                    // Or we just show modal.
+                                    const input = document.getElementById('commentEditInput');
+
                                     modal.style.display = 'flex';
-                                    if (display) display.textContent = el.note || el.comment || '(No comment)';
-                                    // Note: model usually stores 'text'. Comment might be separate.
+                                    if (display) display.textContent = el.comment || '(No comment)';
+
+                                    // Reset buttons
+                                    const editBtn = document.getElementById('editCommentBtn');
+                                    const saveBtn = document.getElementById('saveCommentBtn');
+                                    if (editBtn) editBtn.style.display = 'inline-block';
+                                    if (saveBtn) saveBtn.style.display = 'none';
+                                    if (input) input.style.display = 'none';
+                                    if (display) display.style.display = 'block';
                                 }
                             }
                         });
@@ -697,8 +736,72 @@ export class UIManager {
                 } else if (hit.type === 'connection') {
                     const conn = hit.connection;
                     actions.push({ label: 'Delete', id: 'action-delete', action: () => this.model.removeConnection(conn.id) });
-                    actions.push({ label: 'Comment', id: 'action-comment', action: () => { /* TODO */ } });
-                    actions.push({ label: 'Link', id: 'action-link', action: () => { /* TODO */ } });
+                    actions.push({
+                        label: 'Grow',
+                        id: 'action-grow',
+                        action: () => {
+                            if (this.model.updateConnection) {
+                                this.model.updateConnection(conn.id, { weight: (conn.weight || 1) + 1 });
+                            } else {
+                                conn.weight = (conn.weight || 1) + 1;
+                                this.model.saveState();
+                            }
+                            this.renderer.draw();
+                        }
+                    });
+                    actions.push({
+                        label: 'Shrink',
+                        id: 'action-shrink',
+                        action: () => {
+                            const newWeight = Math.max(1, (conn.weight || 1) - 1);
+                            if (this.model.updateConnection) {
+                                this.model.updateConnection(conn.id, { weight: newWeight });
+                            } else {
+                                conn.weight = newWeight;
+                                this.model.saveState();
+                            }
+                            this.renderer.draw();
+                        }
+                    });
+                    actions.push({
+                        label: 'Comment',
+                        id: 'action-comment',
+                        action: () => {
+                            this.commentTarget = conn;
+                            const modal = document.getElementById('commentModal');
+                            if (modal) {
+                                const display = document.getElementById('commentDisplay');
+                                const input = document.getElementById('commentEditInput');
+
+                                modal.style.display = 'flex';
+                                if (display) display.textContent = conn.comment || '(No comment)';
+
+                                // Reset buttons
+                                const editBtn = document.getElementById('editCommentBtn');
+                                const saveBtn = document.getElementById('saveCommentBtn');
+                                if (editBtn) editBtn.style.display = 'inline-block';
+                                if (saveBtn) saveBtn.style.display = 'none';
+                                if (input) input.style.display = 'none';
+                                if (display) display.style.display = 'block';
+                            }
+                        }
+                    });
+                    actions.push({
+                        label: 'Link',
+                        id: 'action-link',
+                        action: () => {
+                            const url = prompt('Enter link URL:', conn.link || '');
+                            if (url !== null) { // User didn't cancel
+                                if (this.model.updateConnection) {
+                                    this.model.updateConnection(conn.id, { link: url });
+                                } else {
+                                    Object.assign(conn, { link: url });
+                                    this.model.saveState();
+                                }
+                                this.renderer.draw();
+                            }
+                        }
+                    });
                 } else if (hit.type === 'none' || hit.type === 'canvas') {
                     // Background
                     // Helper to add bubble at click position
