@@ -24,7 +24,10 @@ export class PersistenceManager {
      */
     setupHandlers() {
         document.getElementById('saveBtn').addEventListener('click', () => this.saveJSON());
-        document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('loadFile').click());
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            document.getElementById('loadBtn').blur();
+            document.getElementById('loadFile').click();
+        });
         document.getElementById('loadFile').addEventListener('change', (e) => this.loadJSON(e));
         document.getElementById('bundleBtn').addEventListener('click', () => this.createBundle());
         document.getElementById('newBtn').addEventListener('click', async () => this.newMap());

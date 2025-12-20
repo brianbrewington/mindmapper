@@ -298,4 +298,79 @@ export class MindMapModel {
 
         this.saveState();
     }
+
+
+    /**
+     * Checks if a point (x,y) hits any element or connection.
+     * @param {number} x World X coordinate
+     * @param {number} y World Y coordinate
+     * @param {number} tolerance Threshold for connection hits (default 10)
+     * @returns {Object} Hit result { type, element/connection }
+     */
+    hitTest(x, y, tolerance = 10) {
+        // Check elements in reverse Z-order (top to bottom)
+        for (let i = this.elements.length - 1; i >= 0; i--) {
+            const el = this.elements[i];
+
+            // Bubble Hit Test: Ellipsis
+            if (el.type === 'bubble') {
+                const dx = x - el.x;
+                const dy = y - el.y;
+                // Avoid divide by zero if radius is somehow 0 (though unlikely)
+                const rx = el.radiusX || 1;
+                const ry = el.radiusY || 1;
+                if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1) {
+                    return { type: 'element', element: el };
+                }
+            }
+            // Text/Image Hit Test: Rectangle
+            else if (el.type === 'text' || el.type === 'image') {
+                const w = el.width || 50;
+                const h = el.height || 20;
+                if (
+                    x >= el.x &&
+                    x <= el.x + w &&
+                    y >= el.y &&
+                    y <= el.y + h
+                ) {
+                    return { type: 'element', element: el };
+                }
+            }
+        }
+
+        // Check connections
+        // Note: tolerance logic should be passed in scaled by zoom if needed
+        for (let i = this.connections.length - 1; i >= 0; i--) {
+            const conn = this.connections[i];
+            const from = this.elements.find(e => e.id === conn.from);
+            const to = this.elements.find(e => e.id === conn.to);
+
+            if (!from || !to) continue;
+
+            const x1 = from.x, y1 = from.y;
+            const x2 = to.x, y2 = to.y;
+            // Point to Line Segment Distance
+            const lenSq = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+            let param = -1;
+
+            if (lenSq !== 0) {
+                param = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / lenSq;
+            }
+
+            let xx, yy;
+            if (param < 0) { xx = x1; yy = y1; }
+            else if (param > 1) { xx = x2; yy = y2; }
+            else { xx = x1 + param * (x2 - x1); yy = y1 + param * (y2 - y1); }
+
+            const dx = x - xx;
+            const dy = y - yy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < tolerance) {
+                return { type: 'connection', connection: conn };
+            }
+        }
+
+        return { type: 'none' };
+    }
 }

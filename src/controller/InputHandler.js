@@ -396,65 +396,9 @@ export class InputHandler {
      */
     hitTest(x, y) {
         const worldPos = this.renderer.screenToWorld(x, y);
+        // Calculate tolerance based on zoom (e.g., 10px screen space)
+        const hitThreshold = CONFIG.connectionHitThreshold / this.renderer.cameraZoom;
 
-        // Check elements in reverse Z-order
-        for (let i = this.model.elements.length - 1; i >= 0; i--) {
-            const el = this.model.elements[i];
-            // Simple circle/rect intersection
-            if (el.type === 'bubble') {
-                const dx = worldPos.x - el.x;
-                const dy = worldPos.y - el.y;
-                if ((dx * dx) / (el.radiusX * el.radiusX) + (dy * dy) / (el.radiusY * el.radiusY) <= 1) {
-                    return { type: 'element', element: el };
-                }
-            } else if (el.type === 'text' || el.type === 'image') {
-                // Rectangular hit test
-                // Defaults if width/height missing (e.g. before first draw)
-                const w = el.width || 50;
-                const h = el.height || 20;
-                if (
-                    worldPos.x >= el.x &&
-                    worldPos.x <= el.x + w &&
-                    worldPos.y >= el.y &&
-                    worldPos.y <= el.y + h
-                ) {
-                    return { type: 'element', element: el };
-                }
-            }
-        }
-
-        // Check connections
-        const threshold = CONFIG.connectionHitThreshold / this.renderer.cameraZoom; // 10px tolerance
-        for (let i = this.model.connections.length - 1; i >= 0; i--) {
-            const conn = this.model.connections[i];
-            const from = this.model.elements.find(e => e.id === conn.from);
-            const to = this.model.elements.find(e => e.id === conn.to);
-            if (!from || !to) continue;
-
-            // Distance from point to line segment
-            const x1 = from.x, y1 = from.y;
-            const x2 = to.x, y2 = to.y;
-            const x0 = worldPos.x, y0 = worldPos.y;
-
-            const lenSq = (x2 - x1) ** 2 + (y2 - y1) ** 2;
-            let param = -1;
-            if (lenSq !== 0) // Avoid div by zero
-                param = ((x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1)) / lenSq;
-
-            let xx, yy;
-            if (param < 0) { xx = x1; yy = y1; }
-            else if (param > 1) { xx = x2; yy = y2; }
-            else { xx = x1 + param * (x2 - x1); yy = y1 + param * (y2 - y1); }
-
-            const dx = x0 - xx;
-            const dy = y0 - yy;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < threshold) {
-                return { type: 'connection', connection: conn };
-            }
-        }
-
-        return { type: 'none' };
+        return this.model.hitTest(worldPos.x, worldPos.y, hitThreshold);
     }
 }

@@ -84,4 +84,43 @@ describe('MindMapModel', () => {
         model.redo();
         expect(model.elements).toHaveLength(2);
     });
+
+    it('should correctly hit-test bubbles', () => {
+        model.addElement({
+            id: 1, type: 'bubble',
+            x: 100, y: 100,
+            radiusX: 50, radiusY: 30
+        });
+
+        // Center hit
+        let result = model.hitTest(100, 100);
+        expect(result.type).toBe('element');
+        expect(result.element.id).toBe(1);
+
+        // Edge hit (approx)
+        result = model.hitTest(149, 100);
+        expect(result.type).toBe('element');
+
+        // Miss
+        result = model.hitTest(200, 200);
+        expect(result.type).toBe('none');
+    });
+
+    it('should correctly hit-test connections', () => {
+        model.addElement({ id: 1, type: 'bubble', x: 0, y: 0, radiusX: 10, radiusY: 10 });
+        model.addElement({ id: 2, type: 'bubble', x: 100, y: 0, radiusX: 10, radiusY: 10 });
+        model.addConnection(1, 2);
+
+        // On the line
+        let result = model.hitTest(50, 0, 10);
+        expect(result.type).toBe('connection');
+
+        // Near the line (within tolerance)
+        result = model.hitTest(50, 5, 10);
+        expect(result.type).toBe('connection');
+
+        // Far from line
+        result = model.hitTest(50, 20, 10);
+        expect(result.type).toBe('none');
+    });
 });
