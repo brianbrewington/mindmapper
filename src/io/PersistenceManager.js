@@ -25,8 +25,20 @@ export class PersistenceManager {
     setupHandlers() {
         document.getElementById('saveBtn').addEventListener('click', () => this.saveJSON());
         document.getElementById('loadBtn').addEventListener('click', () => {
-            document.getElementById('loadBtn').blur();
-            document.getElementById('loadFile').click();
+            const btn = document.getElementById('loadBtn');
+            const originalTitle = btn.title;
+            btn.title = ''; // Clear title to remove tooltip immediately
+            btn.blur();     // Remove focus
+
+            // Restore title after a delay (long enough for dialog logic)
+            setTimeout(() => {
+                btn.title = originalTitle;
+            }, 500);
+
+            // Open dialog with slight delay to ensure UI updates first
+            setTimeout(() => {
+                document.getElementById('loadFile').click();
+            }, 50);
         });
         document.getElementById('loadFile').addEventListener('change', (e) => this.loadJSON(e));
         document.getElementById('bundleBtn').addEventListener('click', () => this.createBundle());
