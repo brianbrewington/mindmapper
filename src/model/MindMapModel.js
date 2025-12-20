@@ -154,15 +154,22 @@ export class MindMapModel {
         if (state.scenes) {
             this.scenes = JSON.parse(JSON.stringify(state.scenes));
         }
+
+        // Validate
+        console.log(`Model state now: ${this.elements.length} elements.`);
+
         if (pushToHistory) {
             this.saveState();
         }
+        console.groupEnd();
     }
 
     /**
      * Clears the entire model.
      */
     clear() {
+        console.group('[MindMapModel] clear() called');
+        console.trace(); // Who called me?
         this.elements = [];
         this.connections = [];
         this.scenes = [];
@@ -171,6 +178,7 @@ export class MindMapModel {
         this.hasUnsavedChanges = false;
         // Should we save the empty state? Yes.
         this.saveState();
+        console.groupEnd();
     }
 
     /**

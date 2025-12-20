@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "clean": "rm -rf dist node_modules/.vite",
     "test": "vitest",
     "test:run": "vitest run",
     "prepare": "husky"

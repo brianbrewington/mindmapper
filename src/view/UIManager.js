@@ -68,15 +68,7 @@ export class UIManager {
             this.renderer.draw();
         });
 
-        // New
-        bind('newBtn', () => {
-            if (confirm('Start new mind map? Unsaved changes will be lost.')) {
-                this.model.elements = [];
-                this.model.connections = [];
-                this.model.scenes = []; // Clear scenes too
-                this.renderer.draw();
-            }
-        });
+
 
 
         // Revert Layout
@@ -906,57 +898,9 @@ export class UIManager {
      * Zooms the camera to fit all elements in the view.
      */
     zoomExtents() {
-        if (this.model.elements.length === 0) return;
-
-        let minX = Infinity, minY = Infinity;
-        let maxX = -Infinity, maxY = -Infinity;
-
-        this.model.elements.forEach(el => {
-            // Check bounding box of element
-            // For simple calculation, just use center x/y and some rough size padding
-            // Better: use exact dimensions
-            const w = el.width || (el.radiusX * 2) || 100;
-            const h = el.height || (el.radiusY * 2) || 50;
-            const x = el.x;
-            const y = el.y;
-
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (x + w > maxX) maxX = x + w;
-            if (y + h > maxY) maxY = y + h;
-        });
-
-        if (minX === Infinity) return;
-
-        // Add padding
-        const padding = 50;
-        minX -= padding;
-        minY -= padding;
-        maxX += padding;
-        maxY += padding;
-
-        const width = maxX - minX;
-        const height = maxY - minY;
-
-        // Calculate zoom
-        const canvasW = this.renderer.canvas.width;
-        const canvasH = this.renderer.canvas.height;
-
-        const zoomX = canvasW / width;
-        const zoomY = canvasH / height;
-        const zoom = Math.min(zoomX, zoomY);
-
-        // Clamp zoom
-        this.renderer.cameraZoom = Math.min(Math.max(zoom, CONFIG.minZoom), 2.0); // Don't zoom in *too* much on single item
-
-        // Center
-        const centerX = minX + width / 2;
-        const centerY = minY + height / 2;
-
-        this.renderer.cameraOffset.x = (canvasW / 2) - (centerX * this.renderer.cameraZoom);
-        this.renderer.cameraOffset.y = (canvasH / 2) - (centerY * this.renderer.cameraZoom);
-
-        this.renderer.draw();
+        if (this.renderer && this.renderer.zoomToFit) {
+            this.renderer.zoomToFit();
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ describe('Persistence Manager UI Integration', () => {
             <button id="loadBtn"></button>
             <input type="file" id="loadFile" />
             <button id="bundleBtn"></button>
+            <button id="newBtn"></button>
         `;
 
         model = new MindMapModel();
@@ -43,7 +44,7 @@ describe('Persistence Manager UI Integration', () => {
 
         expect(model.restoreState).toHaveBeenCalled();
         expect(uiManager.renderScenesList).toHaveBeenCalled();
-        expect(renderer.draw).toHaveBeenCalled();
+        expect(uiManager.zoomExtents).toHaveBeenCalled();
     });
 
     it('should trigger renderScenesList after loading embedded data', () => {

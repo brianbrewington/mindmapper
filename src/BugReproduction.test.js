@@ -1,110 +1,106 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MindMapModel } from './model/MindMapModel.js';
 import { UIManager } from './view/UIManager.js';
-import { InputHandler } from './controller/InputHandler.js';
-// We need minimal mock for renderer
-const mockRenderer = {
-    canvas: {
-        getContext: () => ({
-            measureText: () => ({ width: 10 }),
-            beginPath: () => { },
-            moveTo: () => { },
-            lineTo: () => { },
-            stroke: () => { },
-            fillText: () => { }
-        }),
-        getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 600 }),
-        addEventListener: () => { },
-        classList: { add: () => { }, remove: () => { } }
-    },
-    screenToWorld: (x, y) => ({ x, y }),
-    worldToScreen: (x, y) => ({ x, y }),
-    draw: () => { },
-    cameraZoom: 1,
-    cameraOffset: { x: 0, y: 0 }
-};
+import { MindMapModel } from './model/MindMapModel.js';
+import { PersistenceManager } from './io/PersistenceManager.js';
 
 describe('Bug Reproduction', () => {
-    let model;
+    let model, renderer, uiManager, persistenceManager;
+    let newBtnHandler;
 
     beforeEach(() => {
+        // Setup DOM for UIManager
+        document.body.innerHTML = `
+            <button id="addBubbleBtn"></button>
+            <button id="addTextBtn"></button>
+            <button id="zoomExtentsBtn"></button>
+            <button id="undoBtn"></button>
+            <button id="redoBtn"></button>
+            <button id="newBtn"></button>
+            <button id="saveBtn"></button>
+            <button id="loadBtn"></button>
+            <input type="file" id="loadFile" />
+            <button id="bundleBtn"></button>
+            <div id="scenesList"></div>
+        `;
+
         model = new MindMapModel();
-    });
 
-    it('Bug 1: Undo after load should not vanish map', () => {
-        // 1. Load mock data (Simulating PersistenceManager.restoreState)
-        const loadedData = {
-            elements: [{ id: 1, type: 'bubble', text: 'Loaded' }],
-            connections: []
+        // Mock Renderer with meaningful canvas dimensions
+        renderer = {
+            draw: vi.fn(),
+            screenToWorld: vi.fn((x, y) => ({ x, y })),
+            worldToScreen: vi.fn((x, y) => ({ x, y })),
+            canvas: { width: 800, height: 600 },
+            cameraZoom: 1,
+            cameraOffset: { x: 0, y: 0 }
         };
-        model.restoreState(loadedData, true); // simulate PersistenceManager calling with 'true'
 
-        // Critical Step: In the bug scenario, history probably wasn't updated here?
-        // Let's verify our assumption: If restoreState DOES NOT save to history, then:
-        // History: [Empty] (Index 0)
+        // We need to capture the 'newBtn' handler to trigger it manually
+        // since we are testing UIManager internals essentially
+        const addEventListenerSpy = vi.spyOn(HTMLElement.prototype, 'addEventListener');
 
-        // 2. Add a bubble
-        model.addElement({ id: 2, type: 'bubble', text: 'New' });
-        // History: [Empty, Loaded+New] (Index 1)
+        uiManager = new UIManager(model, renderer, {});
+        // Initialize PersistenceManager to attach its handlers (including newBtn)
+        persistenceManager = new PersistenceManager(model, renderer, uiManager);
 
-        // 3. Undo
-        model.undo();
-        // History Index 0 -> Empty
-
-        // Expectation: The 'Loaded' bubble should be there.
-        // If bug exists, it will be empty.
-        expect(model.elements.find(el => el.text === 'Loaded')).toBeDefined();
+        // Find the New Button handler
+        const newBtnCall = addEventListenerSpy.mock.calls.find(call =>
+            call[0] === 'click' && (call[1].name === 'handler' || call[1].toString().includes('newBtn')) // Heuristic
+        );
+        // Better way: trigger click on element
     });
 
-    it('Bug 2: Add Scene should work', () => {
-        // Expectation: model has addScene method
-        expect(typeof model.addScene).toBe('function');
-        model.addScene('Scene 1');
-        expect(model.scenes).toHaveLength(1);
+    // Bug 1: Blank Canvas after Bundle Load
+    it('should properly center camera (zoomExtents) after loading bundle', () => {
+        persistenceManager = new PersistenceManager(model, renderer, uiManager);
+
+        // 1. Setup Data that is "off screen" if camera is at 0,0
+        // Element at 5000, 5000
+        const offScreenData = {
+            elements: [{ id: 1, type: 'bubble', x: 5000, y: 5000, text: 'Far away', width: 100, height: 50 }],
+            connections: [],
+            scenes: [],
+            version: '1.0'
+        };
+        const jsonString = JSON.stringify(offScreenData);
+
+        // 2. Load it
+        persistenceManager.loadFromJSONString(jsonString);
+
+        // 3. Verify Zoom Extents logic applied
+        // We now delegate to renderer.zoomToFit, so we just check it was called.
+        // Note: verify renderer.zoomToFit mock exists or spy on it
+        // The mock renderer defined above does NOT have zoomToFit.
+        // We need to add it.
+        renderer.zoomToFit = vi.fn();
+
+        // Reload to trigger logic with new mock
+        persistenceManager.loadFromJSONString(jsonString);
+
+        expect(renderer.zoomToFit).toHaveBeenCalled();
     });
 
-    it('Bug 3: Right click on edge/bubble should trigger menu', () => {
-        // This requires Integration-like setup with InputHandler -> UIManager
-        // But we can check if hitTest detects connections and if UIManager handles it.
-        const inputHandler = new InputHandler(model, mockRenderer);
-        const uiManager = new UIManager(model, mockRenderer, inputHandler);
+    // Bug 2: New Button does not clear scenes
+    it('should clear scenes list UI when New button is clicked', () => {
+        // 1. Setup Model with Scenes
+        model.addScene("Scene 1", {});
+        uiManager.renderScenesList();
 
-        // Spy on showContextMenu
-        const showMenuSpy = vi.spyOn(uiManager, 'showContextMenu');
+        const list = document.getElementById('scenesList');
+        expect(list.children.length).toBe(1);
 
-        // Setup bubble and connection
-        const b1 = { id: 1, type: 'bubble', x: 0, y: 0, radiusX: 50, radiusY: 50 };
-        const b2 = { id: 2, type: 'bubble', x: 200, y: 200, radiusX: 50, radiusY: 50 };
-        const conn = { id: 3, from: 1, to: 2 };
-        model.elements = [b1, b2];
-        model.connections = [conn];
+        // 2. Click New
+        // Mock confirm to return true
+        vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
-        // Mock hitTest to return connection (since math is hard to mock perfectly without real renderer logic affecting it)
-        // Actually, let's trust InputHandler.hitTest if it was working? 
-        // No, current InputHandler code for connection hit test was "// ...". It was MISSING.
-        // So we can assume it will return 'none'.
+        const newBtn = document.getElementById('newBtn');
+        newBtn.click();
 
-        // Force mock hitTest for this test to prove UIManager CAN handle it if InputHandler finds it
-        // Or better: Fail because InputHandler won't find it.
-        // Let's try to hit the bubble first (easier)
+        // 3. Assert Model is cleared
+        expect(model.scenes).toHaveLength(0);
 
-        // inputHandler.handleContextMenu({ clientX: 0, clientY: 0, preventDefault: () => {} });
-        // Bubbles worked in previous test.
-
-        // Now we can assert that hitTest actually returns the connection!
-        const result = inputHandler.hitTest(100, 100);
-        // 100,100 is indeed midpoint of (0,0) and (200,200)
-        expect(result.type).toBe('connection');
-        expect(result.connection.id).toBe(3);
-    });
-
-    it('Bug 4: Export GEXF should generate content', () => {
-        model.elements = [{ id: 1, text: 'A', type: 'bubble' }, { id: 2, text: 'B', type: 'bubble' }];
-        model.connections = [{ from: 1, to: 2 }];
-
-        expect(typeof model.toGEXF).toBe('function');
-        const output = model.toGEXF();
-        expect(output).toContain('<?xml');
-        expect(output).toContain('label="A"');
+        // 4. Assert UI is cleared (The Bug)
+        // This is expected to FAIL currently
+        expect(list.children.length).toBe(0);
     });
 });

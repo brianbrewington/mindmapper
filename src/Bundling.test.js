@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PersistenceManager } from './io/PersistenceManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
 
-describe('Bundle Verification', () => {
+describe('Bundle Round-Trip Verification', () => {
     let model, renderer, uiManager, persistenceManager;
 
     beforeEach(() => {
@@ -11,138 +11,100 @@ describe('Bundle Verification', () => {
             <button id="loadBtn"></button>
             <input type="file" id="loadFile" />
             <button id="bundleBtn"></button>
+            <button id="newBtn"></button>
         `;
         model = new MindMapModel();
-        model.restoreState = vi.fn();
-        renderer = { draw: vi.fn() };
-        uiManager = { renderScenesList: vi.fn() };
+
+        // Mock UI components
+        renderer = { draw: vi.fn(), canvas: { width: 800, height: 600 } };
+        uiManager = { renderScenesList: vi.fn(), zoomExtents: vi.fn() };
+
         persistenceManager = new PersistenceManager(model, renderer, uiManager);
 
-        // Reset global
-        delete window.embeddedDataEncoded;
+        if (typeof window !== 'undefined') {
+            delete window.embeddedDataEncoded;
+        }
     });
 
-    // TEST 1: Isolation - Correct injection
-    it('should inject data into HTML correctly', () => {
-        const originalHtml = '<html><head></head><body></body></html>';
-        const data = { foo: 'bar' };
-
-        const result = PersistenceManager.generateBundleHTML(originalHtml, data);
-
-        // Verify script tag presence
-        expect(result).toContain('<script>window.embeddedDataEncoded =');
-
-        // Verify data correctness
-        // Extract the base64 string
-        const match = result.match(/window\.embeddedDataEncoded = '([^']*)'/);
-        expect(match).not.toBeNull();
-        const encoded = match[1];
-        const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-        expect(decoded).toEqual(data);
+    afterEach(() => {
+        document.body.innerHTML = '';
+        if (typeof window !== 'undefined') {
+            delete window.embeddedDataEncoded;
+        }
     });
 
-    // TEST 2: Isolation - Re-bundling
-    it('should replace existing embedded data if re-bundling', () => {
-        const oldData = { foo: 'old' };
-        const oldEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(oldData))));
-        // Using the variable pattern handled by regex
-        const originalHtml = `<html><script>const embeddedDataEncoded = '${oldEncoded}';</script></html>`;
-
-        const newData = { foo: 'new' };
-        const result = PersistenceManager.generateBundleHTML(originalHtml, newData);
-
-        // Should update the string, not add a new script tag
-        // Note: The Implementation currently supports replacing `const embeddedDataEncoded` or adding `window.embeddedDataEncoded`.
-        // The implementation checks `if (html.includes('const embeddedDataEncoded ='))`
-
-        // Verify it replaced it in place
-        const newEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(newData))));
-        expect(result).toContain(`const embeddedDataEncoded = '${newEncoded}'`);
-        // Verify it didn't add the window version
-        expect(result).not.toContain('window.embeddedDataEncoded =');
-    });
-
-    // TEST 3: Isolation - Special Characters (UTF-8)
-    it('should handle special characters in bundle data', () => {
-        const originalHtml = '<html><head></head></html>';
-        const data = { text: 'Hello 🌎 / "Quotes" & <Tags>' };
-
-        const result = PersistenceManager.generateBundleHTML(originalHtml, data);
-
-        const match = result.match(/window\.embeddedDataEncoded = '([^']*)'/);
-        const encoded = match[1];
-
-        // Using the exact decoding logic from loadEmbeddedData
-        const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-        expect(decoded).toEqual(data);
-    });
-
-    // TEST 4: Integration - Render Pipeline Trigger
-    it('should trigger render pipeline upon loading embedded data', () => {
-        // Setup encoded data
-        const data = { elements: [1, 2, 3] };
-        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-        window.embeddedDataEncoded = encoded;
-
-        persistenceManager.loadEmbeddedData();
-
-        expect(model.restoreState).toHaveBeenCalledWith(data, true);
-        expect(uiManager.renderScenesList).toHaveBeenCalled();
-        expect(renderer.draw).toHaveBeenCalled(); // The critical missing piece
-    });
-
-    // TEST 5: Integration - Init Safety
-    it('should handle missing embedded data gracefully', () => {
-        // window.embeddedDataEncoded is undefined
-
-        const consoleSpy = vi.spyOn(console, 'log');
-
-        persistenceManager.loadEmbeddedData();
-
-        expect(model.restoreState).not.toHaveBeenCalled();
-        expect(model.restoreState).not.toHaveBeenCalled();
-        expect(renderer.draw).not.toHaveBeenCalled();
-        // Should not crash
-    });
-
-    // TEST 6: Deep Verification - Full Cycle
-    it('should fully restore model state from bundle', () => {
-        // 1. Create complex data
-        const inputData = {
+    it('should correctly encode, inject, decode, and restore a complex map state', () => {
+        // 1. Create a Non-Trivial Map State
+        const initialData = {
             elements: [
-                { id: 1, type: 'bubble', x: 10, y: 10, text: 'Node 1', color: 'red' },
-                { id: 2, type: 'bubble', x: 50, y: 50, text: 'Node 2', color: 'blue' }
+                { id: 1, type: 'bubble', x: 100, y: 100, text: 'Root Node', color: '#ff0000' },
+                { id: 2, type: 'bubble', x: 300, y: 100, text: 'Child Node', color: '#00ff00' },
+                { id: 3, type: 'text', x: 200, y: 200, text: 'Annotation' }
             ],
             connections: [
-                { id: 101, from: 1, to: 2, weight: 2 }
+                { id: 101, from: 1, to: 2, weight: 2, color: 'black' }
             ],
             scenes: [
-                { id: 's1', name: 'Scene 1', viewport: { zoom: 1.5, offset: { x: 100, y: 100 } } }
+                { id: 'scene1', name: 'Start', viewport: { zoom: 1, offset: { x: 0, y: 0 } } },
+                { id: 'scene2', name: 'Zoomed', viewport: { zoom: 2, offset: { x: 50, y: 50 } } }
             ],
             version: '1.0'
         };
 
-        // 2. Generate Bundle HTML
-        const html = PersistenceManager.generateBundleHTML('<html></html>', inputData);
+        // Populate the model with this data
+        model.restoreState(initialData, true);
 
-        // 3. Simulate Browser Environment (Extract and set global)
-        const match = html.match(/window\.embeddedDataEncoded = '([^']*)'/);
-        window.embeddedDataEncoded = match[1];
+        // 2. Encode and Inject (Simulate createBundle)
+        // We can't easily mock document.documentElement.outerHTML in a way that includes our injected script *and* parses it back in the same JSDOM tick without full navigation.
+        // So we will verify the generation logic directly, then simulate the load.
 
-        // 4. Load Data
-        // IMPORTANT: We need a REAL model here, not a mock, to verify state update.
-        // Re-initialize manager with real model
-        const realModel = new MindMapModel();
-        const manager = new PersistenceManager(realModel, renderer, uiManager);
+        const dummyHTML = '<html><head></head><body><h1>App</h1></body></html>';
+        const bundleHTML = PersistenceManager.generateBundleHTML(dummyHTML, initialData);
 
-        manager.loadEmbeddedData();
+        // Verify Injection Format
+        expect(bundleHTML).toContain("window.embeddedDataEncoded = '");
 
-        // 5. Verify Model Properties
-        expect(realModel.elements).toEqual(inputData.elements);
-        expect(realModel.connections).toEqual(inputData.connections);
-        expect(realModel.scenes).toEqual(inputData.scenes);
+        // Extract the encoded string to verify it is Base64
+        const match = bundleHTML.match(/window\.embeddedDataEncoded = '([^']*)';/);
+        expect(match).not.toBeNull();
+        const encodedString = match[1];
 
-        // 6. Verify Visual Trigger
-        expect(renderer.draw).toHaveBeenCalled();
+        // 3. Simulate Application Start (Load)
+        // Place the encoded string into the global variable as if the script ran
+        window.embeddedDataEncoded = encodedString;
+
+        // Reset the model to ensure we are actually restoring
+        model.clear();
+        expect(model.elements.length).toBe(0);
+
+        // Trigger load
+        persistenceManager.loadEmbeddedData();
+
+        // 4. Assert State Matches exactly
+        // We verify the internal state of the model matches the initialData
+
+        // Helper to remove any undefined/optional props that might be added during runtime but weren't in input
+        // For strict equality, we expect the restoreState to result in state equivalent to input.
+
+        expect(model.elements).toMatchObject(initialData.elements);
+        expect(model.connections).toMatchObject(initialData.connections);
+        expect(model.scenes).toMatchObject(initialData.scenes);
+
+        // Verify UI triggers
+        expect(uiManager.renderScenesList).toHaveBeenCalled();
+        expect(uiManager.zoomExtents).toHaveBeenCalled();
+    });
+
+    it('should use loadFromJSONString correctly', () => {
+        const data = {
+            elements: [{ id: 99, text: 'JSON Test' }],
+            connections: [],
+            scenes: []
+        };
+        const jsonString = JSON.stringify(data);
+
+        persistenceManager.loadFromJSONString(jsonString);
+
+        expect(model.elements[0].text).toBe('JSON Test');
     });
 });

@@ -15,6 +15,7 @@ describe('PersistenceManager', () => {
         <button id="saveBtn"></button>
         <button id="loadBtn"></button>
         <button id="bundleBtn"></button>
+        <button id="newBtn"></button>
         <input type="file" id="loadFile">
     `;
 

@@ -8,12 +8,17 @@ import { CanvasRenderer } from './view/CanvasRenderer.js';
 import { InputHandler } from './controller/InputHandler.js';
 import { PersistenceManager } from './io/PersistenceManager.js';
 import { UIManager } from './view/UIManager.js';
+import { DebugOverlay } from './view/DebugOverlay.js';
 
 /**
  * Initializes the application when the DOM is fully loaded.
  */
 export function initApp() {
     console.log('Initializing Mind Mapper...');
+
+    // Clear potential "Zombie UI" from static bundle HTML
+    const scenesList = document.getElementById('scenesList');
+    if (scenesList) scenesList.innerHTML = '';
 
     // 1. Initialize Model
     const model = new MindMapModel();
@@ -30,6 +35,9 @@ export function initApp() {
 
     // 5. Initialize Persistence (Load/Save/Bundle)
     const persistenceManager = new PersistenceManager(model, renderer, uiManager);
+
+    // 6. Debug Overlay
+    new DebugOverlay(model);
 
     // Start the application
     // Check for embedded data (from bundle)

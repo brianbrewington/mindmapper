@@ -19,6 +19,7 @@ describe('Context Menu Integration', () => {
                     <input type="file" id="loadFile" style="display: none;" />
                     <button id="saveBtn">Save</button>
                     <button id="bundleBtn">Bundle</button>
+                    <button id="newBtn">New</button>
                 </div>
                 <!-- UIManager expects this for in-place edit -->
                 <textarea id="textInput" style="display: none;"></textarea>
