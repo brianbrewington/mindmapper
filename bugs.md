@@ -12,8 +12,8 @@ Format: `- [ ] Description (File/Context)`
 - [x] **Redo action does not work**: Wired UIManager to listen for model history changes. Fixed missing UI updates. (2025-12-13)
 - [x] **When shrinking a bubble...**: Removed hardcoded 50x30 minimum size in `CanvasRenderer`. Bubbles now autosize down to 10px min. (2025-12-13)
 - [x] **Text Annotations cannot be moved**: Implemented rectangular hit testing for text and images. (2025-12-13)
-- [ ] **Scene delay units should be seconds**: The scene delay units are in seconds, but the input field is in milliseconds, which is less intuitive. 
-- [ ] **Scene stop button has vanished**: The scene stop button has vanished. When playing through the scenes, there should be a stop button to stop the animation.
+- [x] **Scene delay units should be seconds**: The scene delay units are in seconds, but the input field is in milliseconds, which is less intuitive. 
+- [x] **Scene stop button has vanished**: The scene stop button has vanished. When playing through the scenes, there should be a stop button to stop the animation.
 - [ ] **Create a dark theme toggle**: Attempted but reverted due to UI regressions.
 - [x] **Color edit boxes have vanished**: Re-implemented `setupColorPalette` in `UIManager.js`. (2025-12-13)
 - [x] **Shift-Click to Connect**: Implemented in `InputHandler.js`. (2025-12-13)
