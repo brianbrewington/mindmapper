@@ -2,7 +2,7 @@
  * @fileoverview Manages UI elements outside the canvas (Toolbar, Panels, Dialogs).
  */
 
-import { COLORS, FONTS, CONFIG } from '../Constants.js';
+import { COLORS, FONTS, CONFIG, ThemeManager } from '../Constants.js';
 import { Modal } from './Modal.js';
 import { ToolbarHelper } from './ToolbarHelper.js';
 import { ScenesPanel } from './ScenesPanel.js';
@@ -19,6 +19,7 @@ export class UIManager {
         this.contextMenu = new ContextMenu(model, renderer, this);
 
         this.setupCommentModal();
+        this.setupThemeToggle();
         this.setupGlobalEvents();
 
         // Listen to Model changes
@@ -159,6 +160,26 @@ export class UIManager {
         }
     }
 
+
+    setupThemeToggle() {
+        const toggleBtn = document.getElementById('themeToggle');
+        if (!toggleBtn) return;
+
+        toggleBtn.addEventListener('click', () => {
+            const current = ThemeManager.getTheme();
+            const next = current === 'light' ? 'dark' : 'light';
+            ThemeManager.setTheme(next);
+            // Icon update handled by theme listener in main/setupTheme or here?
+            // Let's do it here for button specific UI
+            toggleBtn.textContent = next === 'light' ? '🌙' : '☀️';
+            toggleBtn.title = next === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
+        });
+
+        // Init icon
+        const current = ThemeManager.getTheme();
+        toggleBtn.textContent = current === 'light' ? '🌙' : '☀️';
+    }
+
     setupGlobalEvents() {
         document.addEventListener('requestCreateBubble', (e) => {
             const { x, y } = e.detail;
@@ -219,8 +240,7 @@ export class UIManager {
                         });
                     } else if (type === 'text') {
                         Object.assign(newElement, {
-                            type: 'text',
-                            color: COLORS.defaultText
+                            type: 'text'
                         });
                     }
 

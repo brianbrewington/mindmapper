@@ -23,24 +23,14 @@ describe('Persistence Manager UI Integration', () => {
         persistenceManager = new PersistenceManager(model, renderer, uiManager);
     });
 
-    it('should trigger renderScenesList after loading JSON', () => {
-        // Mock FileReader
-        const mockReader = {
-            readAsText: vi.fn(),
-            onload: null
-        };
-        vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader);
-
-        const mockEvent = { target: { files: [{}] }, value: '' };
-
+    it('should trigger renderScenesList after loading JSON', async () => {
         // Output data
         const testData = JSON.stringify({ elements: [], scenes: [] });
 
-        persistenceManager.loadJSON(mockEvent);
+        // Mock storage load
+        persistenceManager.storage.load = vi.fn().mockResolvedValue(testData);
 
-        // Simulate read completion
-        expect(mockReader.readAsText).toHaveBeenCalled();
-        mockReader.onload({ target: { result: testData } });
+        await persistenceManager.loadJSON();
 
         expect(model.restoreState).toHaveBeenCalled();
         expect(uiManager.renderScenesList).toHaveBeenCalled();

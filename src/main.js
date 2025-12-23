@@ -9,6 +9,7 @@ import { InputHandler } from './controller/InputHandler.js';
 import { PersistenceManager } from './io/PersistenceManager.js';
 import { UIManager } from './view/UIManager.js';
 import { DebugOverlay } from './view/DebugOverlay.js';
+import { ThemeManager } from './Constants.js';
 
 /**
  * Initializes the application when the DOM is fully loaded.
@@ -39,6 +40,50 @@ export function initApp() {
 
     // 6. Debug Overlay
     new DebugOverlay(model);
+
+    // 7. Theme Initialization
+    const setupTheme = () => {
+        if (!window.matchMedia) {
+            console.warn('matchMedia not supported');
+            return;
+        }
+        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        const applyTheme = (isDark) => {
+            const theme = isDark ? 'dark' : 'light';
+            console.log(`Applying theme: ${theme}`);
+            ThemeManager.setTheme(theme);
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        };
+
+        // Initial check
+        applyTheme(darkModeQuery.matches);
+
+        // Listen for system changes
+        darkModeQuery.addEventListener('change', (e) => applyTheme(e.matches));
+
+        // Listen for internal changes (e.g. if we add a toggle later)
+        ThemeManager.onThemeChange((mode) => {
+            if (mode === 'dark') document.body.classList.add('dark-mode');
+            else document.body.classList.remove('dark-mode');
+        });
+    };
+    setupTheme();
+
+    // 8. Bind Persistence Buttons
+    // NOTE: This logic was moved from PersistenceManager.js to allow for cleaner storage swapping
+    document.getElementById('saveBtn').addEventListener('click', () => persistenceManager.saveJSON());
+
+    // Load Button Logic (Trigger abstraction)
+    document.getElementById('loadBtn').addEventListener('click', () => persistenceManager.loadJSON());
+
+    // document.getElementById('loadFile').addEventListener('change', ...); // Handled by LocalStorageProvider
+    document.getElementById('bundleBtn').addEventListener('click', () => persistenceManager.createBundle());
+    document.getElementById('newBtn').addEventListener('click', async () => persistenceManager.newMap());
 
     // Start the application
     // Check for embedded data (from bundle)

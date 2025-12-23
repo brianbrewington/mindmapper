@@ -1,5 +1,4 @@
-
-import { COLORS } from '../Constants.js';
+import { COLORS, ThemeManager } from '../Constants.js';
 
 /**
  * Manages the top toolbar and color palette.
@@ -17,6 +16,10 @@ export class ToolbarHelper {
 
         this.setupToolbar();
         this.setupColorPalette();
+
+        ThemeManager.onThemeChange(() => {
+            this.setupColorPalette();
+        });
     }
 
     setupToolbar() {

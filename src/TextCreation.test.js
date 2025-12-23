@@ -67,6 +67,6 @@ describe('Text Creation', () => {
         expect(model.elements[0].type).toBe('text');
         expect(model.elements[0].text).toBe('Just Text');
         // Check text-specific defaults
-        expect(model.elements[0].color).toBe('#000000');
+        expect(model.elements[0].color).toBeUndefined();
     });
 });

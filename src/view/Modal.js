@@ -10,29 +10,15 @@ export class Modal {
 
         const modal = document.createElement('div');
         modal.id = 'genericModal';
-        modal.style.cssText = `
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Poppins', sans-serif;
-        `;
+        modal.className = 'modal-overlay'; // Use shared class
 
         const content = document.createElement('div');
-        content.style.cssText = `
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        `;
+        content.className = 'modal-content'; // Use shared class
+        // Keep layout styles but remove colors
+        content.style.display = 'flex';
+        content.style.flexDirection = 'column';
+        content.style.gap = '15px';
+        content.style.width = '300px';
 
         const message = document.createElement('div');
         message.id = 'genericModalMessage';
@@ -41,43 +27,31 @@ export class Modal {
         const input = document.createElement('input');
         input.id = 'genericModalInput';
         input.type = 'text';
-        input.style.cssText = `
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            display: none;
-        `;
+        // Input needs to adapt to theme too, or be neutral
+        input.style.padding = '8px';
+        input.style.border = '1px solid var(--border-color)';
+        input.style.borderRadius = '4px';
+        input.style.fontSize = '14px';
+        input.style.display = 'none';
+        input.style.backgroundColor = 'var(--bg-color)';
+        input.style.color = 'var(--text-color)';
 
         const buttons = document.createElement('div');
-        buttons.style.cssText = `
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        `;
+        buttons.style.display = 'flex';
+        buttons.style.justifyContent = 'flex-end';
+        buttons.style.gap = '10px';
 
         const cancelBtn = document.createElement('button');
         cancelBtn.textContent = 'Cancel';
         cancelBtn.id = 'genericModalCancel';
-        cancelBtn.style.cssText = `
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-        `;
+        // Button styling is handled by global button CSS now
 
         const okBtn = document.createElement('button');
         okBtn.textContent = 'OK';
         okBtn.id = 'genericModalOK';
-        okBtn.style.cssText = `
-            padding: 6px 12px;
-            border: none;
-            background: ${COLORS.primary || '#007AFF'};
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-        `;
+        okBtn.style.backgroundColor = COLORS.primary || '#007AFF';
+        okBtn.style.color = 'white';
+        okBtn.style.border = 'none';
 
         buttons.appendChild(cancelBtn);
         buttons.appendChild(okBtn);
@@ -88,12 +62,6 @@ export class Modal {
         modal.appendChild(content);
 
         document.body.appendChild(modal);
-
-        // Hover effects
-        okBtn.onmouseover = () => okBtn.style.opacity = '0.9';
-        okBtn.onmouseout = () => okBtn.style.opacity = '1';
-        cancelBtn.onmouseover = () => cancelBtn.style.background = '#f5f5f5';
-        cancelBtn.onmouseout = () => cancelBtn.style.background = 'white';
     }
 
     /**

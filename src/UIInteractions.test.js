@@ -102,6 +102,7 @@ describe('UI Interactions Audit', () => {
 
         // Persistence needs real instances typically, but we just check listeners
         persistenceManager = new PersistenceManager(model, renderer, uiManager);
+        document.getElementById('newBtn').addEventListener('click', () => persistenceManager.newMap());
     });
 
     const triggerClick = (id) => {

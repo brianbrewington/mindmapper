@@ -78,6 +78,7 @@ describe('App Initialization', () => {
             ellipse: vi.fn(),
             fillText: vi.fn(),
             measureText: vi.fn(() => ({ width: 10 })),
+            fillRect: vi.fn(),
         }));
     });
 

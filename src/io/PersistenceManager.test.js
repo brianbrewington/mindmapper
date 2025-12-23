@@ -28,37 +28,37 @@ describe('PersistenceManager', () => {
         manager = new PersistenceManager(model, renderer, uiManager);
     });
 
-    it('should generate valid JSON for save', () => {
+    it('should trigger storage.save on saveJSON', async () => {
         model.addElement({ id: 1, text: 'Test' });
 
-        // Mock downloadFile to intercept the content
-        const downloadSpy = vi.spyOn(manager, 'downloadFile');
-        // Prevent actual download logic (optional if we trust jsdom but cleaner)
-        downloadSpy.mockImplementation(() => { });
+        const saveSpy = vi.spyOn(manager.storage, 'save');
+        saveSpy.mockResolvedValue();
 
-        manager.saveJSON();
+        await manager.saveJSON();
 
-        expect(downloadSpy).toHaveBeenCalled();
-        const content = downloadSpy.mock.calls[0][0]; // First Arg
+        expect(saveSpy).toHaveBeenCalled();
+        const [fileName, content, contentType] = saveSpy.mock.calls[0];
         const json = JSON.parse(content);
 
+        expect(fileName).toBe('mindmap.json');
         expect(json.elements).toHaveLength(1);
         expect(json.elements[0].text).toBe('Test');
-        expect(json.version).toBe('1.0');
+        // Theme defaults to light if not set, or whatever ThemeManager.getTheme() returns
+        expect(json.theme).toBeDefined();
     });
 
     it('should create bundle with embedded data', () => {
         model.addElement({ id: 1, text: 'Bundle Node' });
 
-        const downloadSpy = vi.spyOn(manager, 'downloadFile');
-        downloadSpy.mockImplementation(() => { });
+        const saveSpy = vi.spyOn(manager.storage, 'save');
+        saveSpy.mockResolvedValue();
 
         // Mock document structure
         // createBundle reads outerHTML
 
         manager.createBundle();
 
-        const content = downloadSpy.mock.calls[0][0];
+        const content = saveSpy.mock.calls[0][1]; // 2nd arg is content
         // Check if it contains the embedded data variable assignment
         expect(content).toContain('embeddedDataEncoded =');
 

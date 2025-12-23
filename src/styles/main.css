@@ -1,3 +1,43 @@
+:root {
+    --bg-color: #f0f2f5;
+    --text-color: #333;
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --border-color: #ddd;
+    --button-bg: #fff;
+    --button-hover: #f0f0f0;
+    --button-text: #000;
+
+    --primary-color: #007bff;
+    --primary-text: #ffffff;
+    --overlay-dim: rgba(0, 0, 0, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --kbd-bg: #eee;
+    --kbd-border: #b4b4b4;
+    --drop-target-bg: #f0f7ff;
+    --scene-edit-bg: #ffffff;
+}
+
+body.dark-mode {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --panel-bg: rgba(30, 30, 30, 0.9);
+    --border-color: #444;
+    --button-bg: #2c2c2c;
+    /* Dark background for buttons */
+    --button-text: #e0e0e0;
+    /* Light text */
+    --button-hover: #3c3c3c;
+
+    --primary-color: #4dabf7;
+    --primary-text: #ffffff;
+    --overlay-dim: rgba(0, 0, 0, 0.7);
+    --input-bg: rgba(44, 44, 44, 0.9);
+    --kbd-bg: #333;
+    --kbd-border: #555;
+    --drop-target-bg: #1a2a3a;
+    --scene-edit-bg: #2c2c2c;
+}
+
 /* Global body styling with modern font stack */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
@@ -5,8 +45,8 @@ body {
     padding: 0;
     overflow: hidden;
     /* Prevents scrollbars */
-    background-color: #f0f2f5;
-    /* Light gray background */
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 
 /* Loading screen that shows while fonts are loading */
@@ -20,15 +60,16 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 2em;
-    background-color: #f0f2f5;
+    background-color: var(--bg-color);
     z-index: 9999;
-    color: #555;
+    color: var(--text-color);
 }
 
 /* Canvas styling with different cursor states */
 #canvas {
     display: block;
-    background-color: #ffffff;
+    background-color: transparent;
+    /* CanvasRenderer handles generic background color now */
     cursor: grab;
     z-index: 1;
 }
@@ -49,7 +90,7 @@ body {
     position: absolute;
     top: 10px;
     left: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel-bg);
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -64,17 +105,18 @@ body {
 /* Instruction text in control panel */
 #controls span {
     font-size: 12px;
-    color: #555;
+    color: var(--text-color);
     padding-left: 10px;
-    border-left: 2px solid #eee;
+    border-left: 2px solid var(--border-color);
 }
 
 /* Button styling for all interactive elements */
 button {
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    background-color: #fff;
+    border: 1px solid var(--border-color);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     cursor: pointer;
     font-size: 14px;
     font-family: 'Inter', sans-serif;
@@ -83,12 +125,11 @@ button {
 }
 
 button:hover {
-    background-color: #f0f0f0;
+    background-color: var(--button-hover);
 }
 
 button:disabled {
-    background-color: #f8f8f8;
-    color: #aaa;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
@@ -109,8 +150,9 @@ input[type="file"] {
 #contextMenu {
     position: absolute;
     display: none;
-    background-color: #fff;
-    border: 1px solid #ccc;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 6px 0;
@@ -122,6 +164,19 @@ input[type="file"] {
     text-align: left;
 }
 
+#themeToggle {
+    margin-left: 10px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    font-size: 1.2em;
+    padding: 5px 10px;
+    /* In dark mode, this specific button might need to look active or just inherit */
+}
+
+#themeToggle:hover {
+    background-color: var(--button-hover);
+}
+
 /* Help button - floating blue circle in top-right */
 #helpBtn {
     position: absolute;
@@ -130,8 +185,8 @@ input[type="file"] {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #007bff;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--primary-text);
     border: none;
     font-size: 24px;
     font-weight: bold;
@@ -143,30 +198,56 @@ input[type="file"] {
     z-index: 1001;
 }
 
-/* Modal overlay styling for help and comment dialogs */
-#helpModal,
-#commentModal {
+/* Shared Modal Overlay */
+.modal-overlay {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--overlay-dim);
     z-index: 2000;
     justify-content: center;
     align-items: center;
 }
 
-/* Modal content styling */
+/* Shared Modal Content */
 .modal-content {
-    background-color: #fff;
+    background-color: var(--panel-bg);
+    /* Use panel-bg for dark mode support */
+    color: var(--text-color);
     padding: 30px;
     border-radius: 10px;
     max-width: 500px;
     width: 90%;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     font-family: 'Nunito', sans-serif;
+    border: 1px solid var(--border-color);
+}
+
+/* Apply to specific modals */
+#helpModal,
+#commentModal,
+#genericModal {
+    display: none;
+    /* Default state */
+}
+
+/* But genericModal is created in JS, so we'll just add class there. 
+   Existing IDs help select them. */
+#helpModal,
+#commentModal {
+    /* reuse .modal-overlay props if we add class, else keep existing: */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-dim);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content h2 {
@@ -178,11 +259,16 @@ input[type="file"] {
     padding-left: 20px;
 }
 
+/* Buttons inside modals */
+.modal-content button {
+    margin-top: 10px;
+}
+
 /* Keyboard shortcut styling */
 .modal-content kbd {
-    background-color: #eee;
+    background-color: var(--kbd-bg);
     border-radius: 3px;
-    border: 1px solid #b4b4b4;
+    border: 1px solid var(--kbd-border);
     padding: 2px 4px;
     font-family: monospace;
 }
@@ -224,7 +310,8 @@ input[type="file"] {
     position: absolute;
     display: none;
     border: 1px dashed #999;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: var(--input-bg);
+    color: var(--text-color);
     font-family: 'Inter', sans-serif;
     font-size: 16px;
     padding: 10px;
@@ -241,8 +328,8 @@ input[type="file"] {
     top: 50px;
     right: 10px;
     width: 300px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 100;
     font-family: 'Inter', sans-serif;
@@ -308,7 +395,7 @@ input[type="file"] {
     margin: 0;
     font-family: 'Inter', sans-serif;
     font-size: 16px;
-    color: #333;
+    color: var(--text-color);
 }
 
 #toggleScenesBtn {
@@ -336,19 +423,21 @@ input[type="file"] {
     align-items: center;
     padding: 8px;
     margin: 2px 0;
-    background-color: #f8f9fa;
+    background-color: var(--button-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .scene-item:hover {
-    background-color: #e9ecef;
+    background-color: var(--button-hover);
 }
 
 .scene-item.selected {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--primary-text);
 }
 
 .scene-name {
@@ -362,8 +451,8 @@ input[type="file"] {
 }
 
 .scene-item.drop-target {
-    border-bottom: 2px solid #007bff;
-    background: #f0f7ff;
+    border-bottom: 2px solid var(--primary-color);
+    background: var(--drop-target-bg);
 }
 
 .drag-handle:hover {
@@ -372,18 +461,12 @@ input[type="file"] {
 
 /* Make emoji icons larger on buttons */
 button {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    cursor: pointer;
     font-size: 16px;
-    font-family: 'Inter', sans-serif;
 }
 
 .scene-name.editing {
-    background-color: white;
-    border: 1px solid #007bff;
+    background-color: var(--scene-edit-bg);
+    border: 1px solid var(--primary-color);
     border-radius: 3px;
     padding: 2px 4px;
     outline: none;

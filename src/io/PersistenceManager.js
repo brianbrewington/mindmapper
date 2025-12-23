@@ -1,9 +1,6 @@
-/**
- * @fileoverview Handles Persistence (Save/Load/Bundle).
- * Contains the logic for the "Quine" bundle creation.
- */
-
 import { Modal } from '../view/Modal.js';
+import { LocalStorageProvider } from './storage/LocalStorageProvider.js';
+import { ThemeManager } from '../Constants.js';
 
 export class PersistenceManager {
     /**
@@ -16,38 +13,13 @@ export class PersistenceManager {
         this.renderer = renderer;
         this.uiManager = uiManager;
 
-        this.setupHandlers();
+        // Default to Local Storage
+        // Pass the existing file input if we want to reuse it, or let provider create one.
+        // For existing DOM compatibility:
+        const fileInput = document.getElementById('loadFile');
+        this.storage = new LocalStorageProvider({ fileInput });
     }
 
-    /**
-     * Sets up DOM event listeners for save/load operations.
-     */
-    setupHandlers() {
-        document.getElementById('saveBtn').addEventListener('click', () => this.saveJSON());
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            const btn = document.getElementById('loadBtn');
-            const originalTitle = btn.title;
-            btn.title = ''; // Clear title to remove tooltip immediately
-            btn.blur();     // Remove focus
-
-            // Restore title after a delay (long enough for dialog logic)
-            setTimeout(() => {
-                btn.title = originalTitle;
-            }, 500);
-
-            // Open dialog with slight delay to ensure UI updates first
-            setTimeout(() => {
-                document.getElementById('loadFile').click();
-            }, 50);
-        });
-        document.getElementById('loadFile').addEventListener('change', (e) => this.loadJSON(e));
-        document.getElementById('bundleBtn').addEventListener('click', () => this.createBundle());
-        document.getElementById('newBtn').addEventListener('click', async () => this.newMap());
-    }
-
-    /**
-     * Loads embedded data if present (from the bundle).
-     */
     /**
      * Loads embedded data if present (from the bundle).
      */
@@ -65,14 +37,32 @@ export class PersistenceManager {
         }
     }
 
-    saveJSON() {
+    async saveJSON() {
         const data = {
             elements: this.model.elements,
             connections: this.model.connections,
             scenes: this.model.scenes,
-            version: '1.0'
+            version: '1.0',
+            theme: ThemeManager.getTheme()
         };
-        this.downloadFile(JSON.stringify(data, null, 2), 'mindmap.json', 'application/json');
+        try {
+            await this.storage.save('mindmap.json', JSON.stringify(data, null, 2), 'application/json');
+        } catch (e) {
+            console.error('Save failed:', e);
+            alert('Failed to save file');
+        }
+    }
+
+    async loadJSON() {
+        try {
+            const jsonString = await this.storage.load();
+            this.loadFromJSONString(jsonString);
+        } catch (e) {
+            if (e !== 'No file selected') { // Ignore cancellation
+                console.error('Load failed:', e);
+                alert('Failed to load file');
+            }
+        }
     }
 
     async newMap() {
@@ -97,6 +87,10 @@ export class PersistenceManager {
             const data = JSON.parse(jsonString);
             this.model.restoreState(data, true);
 
+            if (data.theme) {
+                ThemeManager.setTheme(data.theme);
+            }
+
             if (this.uiManager && this.uiManager.renderScenesList) {
                 this.uiManager.renderScenesList();
             }
@@ -111,17 +105,6 @@ export class PersistenceManager {
             console.error('Failed to load JSON:', err);
             alert('Invalid file');
         }
-    }
-
-    loadJSON(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            this.loadFromJSONString(ev.target.result);
-        };
-        reader.readAsText(file);
-        e.target.value = '';
     }
 
     /**
@@ -157,22 +140,9 @@ export class PersistenceManager {
         }
 
         const bundleHTML = PersistenceManager.generateBundleHTML(htmlContent, data);
-        this.downloadFile(bundleHTML, `mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, 'text/html');
+        this.storage.save(`mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, bundleHTML, 'text/html');
     }
 
-    downloadFile(content, fileName, contentType) {
-        const a = document.createElement("a");
-        const file = new Blob([content], { type: contentType });
-        const url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 0);
-    }
 
     /**
      * Injects the data into the HTML as a script tag.

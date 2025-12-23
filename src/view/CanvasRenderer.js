@@ -3,7 +3,7 @@
  * Reads the Model and renders the visual representation.
  */
 
-import { COLORS, FONTS, CONFIG } from '../Constants.js';
+import { COLORS, FONTS, CONFIG, ThemeManager } from '../Constants.js';
 
 export class CanvasRenderer {
     /**
@@ -30,6 +30,9 @@ export class CanvasRenderer {
 
         // Handle resizing
         window.addEventListener('resize', () => this.draw());
+
+        // Handle theme changes
+        ThemeManager.onThemeChange(() => this.draw());
     }
 
     /**
@@ -41,6 +44,11 @@ export class CanvasRenderer {
         this.canvas.height = window.innerHeight;
 
         const ctx = this.ctx;
+
+        // Fill background explicitly because transparent canvas defaults to valid web page bg, 
+        // but we want to ensure we control it (especially for export/bundles).
+        ctx.fillStyle = COLORS.background;
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Apply camera transform
         ctx.save();
@@ -89,10 +97,10 @@ export class CanvasRenderer {
             ctx.font = '12px Poppins, sans-serif';
             const textWidth = ctx.measureText(conn.label).width;
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillStyle = COLORS.background; // Use theme background for label bg
             ctx.fillRect(midX - textWidth / 2 - 4, midY - 10, textWidth + 8, 20);
 
-            ctx.fillStyle = '#333';
+            ctx.fillStyle = COLORS.defaultText; // Use theme text for label
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(conn.label, midX, midY);
@@ -107,7 +115,10 @@ export class CanvasRenderer {
         const ctx = this.ctx;
         const isSelected = (this.model.selectedElement && this.model.selectedElement.id === el.id);
 
-        ctx.fillStyle = el.color || COLORS.background;
+        // Resolve color pair if needed
+        const resolvedColor = ThemeManager.resolveColor(el.color);
+
+        ctx.fillStyle = resolvedColor || COLORS.background;
         ctx.strokeStyle = isSelected ? COLORS.selection : COLORS.outline;
         ctx.lineWidth = isSelected ? 4 : 2;
 
@@ -157,7 +168,19 @@ export class CanvasRenderer {
         ctx.stroke();
 
         // Text drawing
-        ctx.fillStyle = '#000';
+        // Resolve text color against the bubble color or theme?
+        // Usually black on light bubbles, white on dark bubbles.
+        // If bubble color is 'light palette', we want black text.
+        // If bubble color is 'dark pair', we want white text.
+        // Simplest heuristic: if in dark mode, default text is white. 
+        // But if the bubble color is explicitly 'white', text should be black?
+        // Let's stick to theme default text for now, but really "Text on Bubble" is complex.
+        // Assuming current bubbles are pastel, black text works.
+        // In dark mode, bubbles are dark saturated, so white text works.
+        // So checking ThemeManager.getColor('defaultText') is likely correct.
+
+        ctx.fillStyle = COLORS.defaultText;
+
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -183,7 +206,11 @@ export class CanvasRenderer {
         ctx.font = el.font && el.font.includes('px') ? el.font : FONTS.fullString(el.fontSize || 16, el.font);
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillStyle = el.color || COLORS.defaultText; // Ensure color is set
+
+        // Resolve color
+        const resolvedColor = ThemeManager.resolveColor(el.color);
+        ctx.fillStyle = resolvedColor || COLORS.defaultText; // Ensure color is set
+
         ctx.fillText(el.text, el.x, el.y);
 
         const textWidth = ctx.measureText(el.text).width;
