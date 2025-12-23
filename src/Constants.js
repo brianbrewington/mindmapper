@@ -7,15 +7,19 @@
  * Used for flipping bubble colors and other specific palette items.
  * Keys = Light Mode Colors, Values = Dark Mode Colors.
  */
-const PALETTE_PAIRS = {
-    '#ffffff': '#2c2c2c',
-    '#ffcccc': '#661111',
-    '#ccffcc': '#115511',
-    '#ccccff': '#111166',
-    '#ffffcc': '#666611',
-    '#ffccff': '#551155',
-    '#ccffff': '#115555',
-};
+/**
+ * Structured definition of color pairs for Light and Dark modes.
+ * Used for generating palettes and determining color flips.
+ */
+const COLOR_PAIRS = [
+    { light: '#ffffff', dark: '#2c2c2c', name: 'White/DarkGray' },
+    { light: '#ffcccc', dark: '#661111', name: 'Red' },
+    { light: '#ccffcc', dark: '#115511', name: 'Green' },
+    { light: '#ccccff', dark: '#111166', name: 'Blue' },
+    { light: '#ffffcc', dark: '#666611', name: 'Yellow' },
+    { light: '#ffccff', dark: '#551155', name: 'Purple' },
+    { light: '#ccffff', dark: '#115555', name: 'Cyan' },
+];
 
 const LIGHT_THEME = {
     primary: '#007bff',        // Used for Buttons, Selection highlights, Links
@@ -36,7 +40,7 @@ const LIGHT_THEME = {
     contextMenuText: 'black',  // Context menu item text
     contextMenuBorder: '#ccc', // Context menu border
     contextMenuHover: '#eee',  // Context menu item hover background
-    palette: Object.keys(PALETTE_PAIRS)
+    palette: COLOR_PAIRS.map(p => p.light)
 };
 
 
@@ -59,7 +63,7 @@ const DARK_THEME = {
     contextMenuText: '#e0e0e0',
     contextMenuBorder: '#444',
     contextMenuHover: '#333',
-    palette: Object.values(PALETTE_PAIRS)
+    palette: COLOR_PAIRS.map(p => p.dark)
 };
 
 class _ThemeManager {
@@ -100,8 +104,9 @@ class _ThemeManager {
         }
 
         // If mode is dark, check if this hex has a pair
-        if (PALETTE_PAIRS[hex]) {
-            return PALETTE_PAIRS[hex];
+        const pair = COLOR_PAIRS.find(p => p.light === hex);
+        if (pair) {
+            return pair.dark;
         }
 
         // Also check if it matches the default bubble color
