@@ -267,8 +267,94 @@ export class UIManager {
     }
 
     /**
-     * Zooms the camera to fit all elements in the view.
+     * Animates the camera to the target scene's viewport.
+     * Uses cubic ease-in-out for movement and a parabolic arc for zoom.
+     * 
+     * @param {Object} scene The target scene object containing viewport data.
+     * @param {number} duration Duration of the animation in ms.
+     * @returns {Promise} Resolves when animation completes.
      */
+    animateToSceneViewport(scene, duration = 2000) {
+        if (!scene || !scene.viewport || !this.renderer) return Promise.resolve();
+
+        // Cancel any existing animation
+        if (this.currentAnimationCancel) {
+            this.currentAnimationCancel();
+            this.currentAnimationCancel = null;
+        }
+
+        return new Promise((resolve) => {
+            const startZoom = this.renderer.cameraZoom;
+            const startOffset = { ...this.renderer.cameraOffset };
+
+            const targetZoom = scene.viewport.zoom;
+            const targetOffset = scene.viewport.offset;
+
+            const startTime = performance.now();
+            let isCancelled = false;
+
+            // Store cancel function
+            this.currentAnimationCancel = () => {
+                isCancelled = true;
+                resolve(); // Resolve immediately if cancelled (or reject? resolve is safer for flow)
+            };
+
+            const animate = (currentTime) => {
+                if (isCancelled) return;
+
+                const elapsed = currentTime - startTime;
+                let t = Math.min(elapsed / duration, 1);
+
+                // Ease-in-out cubic function: 3t^2 - 2t^3 is common smoothstep, 
+                // or true cubic: t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+                // Let's use smoothstep for simplicity as it feels natural enough
+                const easedT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+                // Interpolate Position
+                this.renderer.cameraOffset.x = startOffset.x + (targetOffset.x - startOffset.x) * easedT;
+                this.renderer.cameraOffset.y = startOffset.y + (targetOffset.y - startOffset.y) * easedT;
+
+                // Interpolate Zoom with "Dip" (Zoom Out effect)
+                // We want to zoom out a bit in the middle.
+                // Base interpolation
+                const baseZoom = startZoom + (targetZoom - startZoom) * easedT;
+
+                // Zoom out factor: parabolic arc peaking at t=0.5
+                // 4 * (0.25 - (t - 0.5)^2) goes from 0 to 1 to 0
+                // Magnitude: zoom out by 20% of the min(start, target) zoom?
+                // Or just a fixed multiplier like 0.8x
+                const zoomDipFactor = 0.6; // How much to zoom out. 1 = no change.
+                const influence = 4 * (t - 0.5) * (t - 0.5); // 0 at mid, 1 at ends? No.
+                // Parabola: y = 4t(1-t) -> 0 at ends, 1 at mid.
+                const parabola = 4 * t * (1 - t);
+
+                // We want to Multiply zoom by (1 - k * parabola)
+                // If k=0.3, at mid it multiplies by 0.7
+                const zoomMultiplier = 1 - (0.3 * parabola);
+
+                this.renderer.cameraZoom = baseZoom * zoomMultiplier;
+
+                // Clamp min zoom just in case
+                if (this.renderer.cameraZoom < CONFIG.minZoom) this.renderer.cameraZoom = CONFIG.minZoom;
+
+                this.renderer.draw();
+
+                if (t < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Snap to final exact values to avoid float errors
+                    this.renderer.cameraZoom = targetZoom;
+                    this.renderer.cameraOffset = { ...targetOffset };
+                    this.renderer.draw();
+                    this.currentAnimationCancel = null;
+                    resolve();
+                }
+            };
+
+            requestAnimationFrame(animate);
+        });
+    }
+
     zoomExtents() {
         if (this.renderer && this.renderer.zoomToFit) {
             this.renderer.zoomToFit();

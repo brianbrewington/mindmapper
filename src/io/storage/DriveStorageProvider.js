@@ -1,5 +1,5 @@
 import { StorageProvider } from './StorageProvider.js';
-import { driveClient } from '../DriveClient.js';
+import { driveClient } from '../../DriveClient.js';
 
 export class DriveStorageProvider extends StorageProvider {
     async save(fileName, content, contentType) {

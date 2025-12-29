@@ -10,6 +10,7 @@ import { PersistenceManager } from './io/PersistenceManager.js';
 import { UIManager } from './view/UIManager.js';
 import { DebugOverlay } from './view/DebugOverlay.js';
 import { ThemeManager } from './Constants.js';
+import { driveClient } from './DriveClient.js';
 
 /**
  * Initializes the application when the DOM is fully loaded.
@@ -88,6 +89,26 @@ export function initApp() {
     // Start the application
     // Check for embedded data (from bundle)
     persistenceManager.loadEmbeddedData();
+
+    // Initialize Google Drive Client
+    driveClient.init();
+
+    const driveStatus = document.getElementById('driveStatus');
+    if (driveStatus) {
+        driveClient.onAuthChange((isAuthenticated) => {
+            if (isAuthenticated) {
+                driveStatus.style.opacity = '1';
+                driveStatus.title = 'Google Drive Connected';
+            } else {
+                driveStatus.style.opacity = '0.3';
+                driveStatus.title = 'Google Drive Disconnected';
+            }
+        });
+
+        driveStatus.addEventListener('click', () => {
+            driveClient.ensureAuth().catch(console.error);
+        });
+    }
 
     // Initial draw
     renderer.draw();

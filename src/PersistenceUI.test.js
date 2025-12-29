@@ -21,6 +21,13 @@ describe('Persistence Manager UI Integration', () => {
         uiManager = { renderScenesList: vi.fn(), zoomExtents: vi.fn() };
 
         persistenceManager = new PersistenceManager(model, renderer, uiManager);
+
+        // Mock Modal
+        vi.mock('./view/Modal.js', () => ({
+            Modal: {
+                showStorageChoice: vi.fn().mockResolvedValue('local')
+            }
+        }));
     });
 
     it('should trigger renderScenesList after loading JSON', async () => {
@@ -28,7 +35,7 @@ describe('Persistence Manager UI Integration', () => {
         const testData = JSON.stringify({ elements: [], scenes: [] });
 
         // Mock storage load
-        persistenceManager.storage.load = vi.fn().mockResolvedValue(testData);
+        persistenceManager.providers.local.load = vi.fn().mockResolvedValue(testData);
 
         await persistenceManager.loadJSON();
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MindMapModel } from './model/MindMapModel.js';
 import { UIManager } from './view/UIManager.js';
 
@@ -8,6 +8,7 @@ describe('Scene Interactions', () => {
     let mockRenderer;
 
     beforeEach(() => {
+        vi.useFakeTimers();
         model = new MindMapModel();
         mockRenderer = {
             draw: vi.fn(),
@@ -46,6 +47,20 @@ describe('Scene Interactions', () => {
         `;
 
         uiManager = new UIManager(model, mockRenderer, {});
+
+        // Mock animation to resolve immediately and update renderer state
+        vi.spyOn(uiManager, 'animateToSceneViewport').mockImplementation((scene) => {
+            if (scene.viewport) {
+                mockRenderer.cameraZoom = scene.viewport.zoom;
+                mockRenderer.cameraOffset = { ...scene.viewport.offset };
+                mockRenderer.draw();
+            }
+            return Promise.resolve();
+        });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it('should have a Single Step button in the scenes panel', () => {
@@ -81,6 +96,7 @@ describe('Scene Interactions', () => {
 
         // 2. Click Step -> Should go to Scene 2 (index 1)
         stepBtn.click();
+
         expect(mockRenderer.cameraZoom).toBe(2.0);
         expect(mockRenderer.cameraOffset).toEqual({ x: 20, y: 20 });
         expect(nameSpan.textContent).toBe("Scene 2");

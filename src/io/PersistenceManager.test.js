@@ -26,12 +26,20 @@ describe('PersistenceManager', () => {
         const uiManager = {};
 
         manager = new PersistenceManager(model, renderer, uiManager);
+
+        // Mock Modal to avoid waiting for UI
+        vi.mock('../view/Modal.js', () => ({
+            Modal: {
+                showStorageChoice: vi.fn().mockResolvedValue('local'),
+                showConfirm: vi.fn().mockResolvedValue(true)
+            }
+        }));
     });
 
     it('should trigger storage.save on saveJSON', async () => {
         model.addElement({ id: 1, text: 'Test' });
 
-        const saveSpy = vi.spyOn(manager.storage, 'save');
+        const saveSpy = vi.spyOn(manager.providers.local, 'save');
         saveSpy.mockResolvedValue();
 
         await manager.saveJSON();
@@ -50,7 +58,7 @@ describe('PersistenceManager', () => {
     it('should create bundle with embedded data', () => {
         model.addElement({ id: 1, text: 'Bundle Node' });
 
-        const saveSpy = vi.spyOn(manager.storage, 'save');
+        const saveSpy = vi.spyOn(manager.providers.local, 'save');
         saveSpy.mockResolvedValue();
 
         // Mock document structure

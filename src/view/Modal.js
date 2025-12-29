@@ -215,4 +215,77 @@ export class Modal {
             okBtn.focus();
         });
     }
+    /**
+     * Shows a modal to choose between Local storage and Google Drive.
+     * @returns {Promise<'local'|'drive'|null>}
+     */
+    static showStorageChoice() {
+        this.init();
+        return new Promise((resolve) => {
+            const modal = document.getElementById('genericModal');
+            const msg = document.getElementById('genericModalMessage');
+            const input = document.getElementById('genericModalInput');
+            const okBtn = document.getElementById('genericModalOK'); // Reuse as Local
+            const cancelBtn = document.getElementById('genericModalCancel');
+
+            // Create a third button for Drive
+            let driveBtn = document.getElementById('genericModalDrive');
+            if (!driveBtn) {
+                driveBtn = document.createElement('button');
+                driveBtn.id = 'genericModalDrive';
+                driveBtn.textContent = 'Google Drive'; // Will set text below
+                driveBtn.style.backgroundColor = '#34A853'; // Google Green
+                driveBtn.style.color = 'white';
+                driveBtn.style.border = 'none';
+                // Insert before OK button
+                okBtn.parentNode.insertBefore(driveBtn, okBtn);
+            }
+
+            msg.textContent = 'Where would you like to save/load?';
+            input.style.display = 'none';
+
+            okBtn.textContent = 'Local Storage';
+            okBtn.style.display = 'block';
+
+            driveBtn.textContent = 'Google Drive';
+            driveBtn.style.display = 'block';
+
+            cancelBtn.style.display = 'block';
+            cancelBtn.textContent = 'Cancel';
+
+            modal.style.display = 'flex';
+
+            const cleanup = () => {
+                modal.style.display = 'none';
+                okBtn.onclick = null;
+                driveBtn.onclick = null;
+                cancelBtn.onclick = null;
+                driveBtn.style.display = 'none'; // Hide for other modals
+                document.removeEventListener('keydown', handleKey);
+            };
+
+            const handleKey = (e) => {
+                if (e.key === 'Escape') {
+                    resolve(null);
+                    cleanup();
+                }
+            };
+            document.addEventListener('keydown', handleKey);
+
+            okBtn.onclick = () => {
+                resolve('local');
+                cleanup();
+            };
+
+            driveBtn.onclick = () => {
+                resolve('drive');
+                cleanup();
+            };
+
+            cancelBtn.onclick = () => {
+                resolve(null);
+                cleanup();
+            };
+        });
+    }
 }
