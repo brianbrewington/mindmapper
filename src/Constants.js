@@ -142,11 +142,11 @@ export const COLORS = new Proxy({}, {
 });
 
 export const FONTS = {
-    family: 'Poppins',
+    family: 'Lexend',
     defaultSize: 16,
-    defaultString: '16px Poppins',
+    defaultString: '16px Lexend',
     minSize: 8,
-    fullString: (size, family = 'Poppins') => `${size}px ${family}`
+    fullString: (size, family = 'Lexend') => `${size}px ${family}`
 };
 
 export const CONFIG = {
