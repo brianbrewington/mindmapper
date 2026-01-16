@@ -48,7 +48,7 @@ describe('Keyboard Shortcuts', () => {
     });
 
     it('should resize text elements (font only)', () => {
-        const text = { id: 2, type: 'text', x: 0, y: 0, fontSize: 16, font: '16px Poppins' };
+        const text = { id: 2, type: 'text', x: 0, y: 0, fontSize: 16, font: '16px Lexend, sans-serif' };
         model.elements.push(text);
         model.selectedElement = text;
 
@@ -56,7 +56,7 @@ describe('Keyboard Shortcuts', () => {
         inputHandler.handleKeyDown(event);
 
         expect(text.fontSize).toBe(18);
-        expect(text.font).toBe('18px Poppins');
+        expect(text.font).toBe('18px Lexend, sans-serif');
         // Text doesn't have radius, ensure no error
         expect(text.radiusX).toBeUndefined();
     });

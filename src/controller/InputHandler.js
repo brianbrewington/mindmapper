@@ -210,7 +210,7 @@ export class InputHandler {
             if (selected.fontSize) {
                 selected.fontSize = Math.max(8, selected.fontSize + (direction * 2));
                 // Update font string safely
-                // Ensure we keep the font family if possible, or default to 'Poppins'
+                // Ensure we keep the font family if possible, or default to Lexend
                 let fontFamily = FONTS.family;
                 if (selected.font) {
                     // Try to preserve existing family

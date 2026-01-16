@@ -235,7 +235,7 @@ export class UIManager {
                 } else {
                     const newElement = {
                         id: Date.now(), x: worldX, y: worldY, text: text,
-                        fontSize: 16, font: '16px Poppins' // Shared defaults
+                        fontSize: 16, font: '16px Lexend, sans-serif' // Shared defaults
                     };
 
                     if (type === 'bubble') {

@@ -124,7 +124,7 @@ export class ContextMenu {
                     label: 'Grow', id: 'action-grow',
                     action: () => {
                         el.fontSize = (el.fontSize || 16) + 2;
-                        el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Poppins, sans-serif'}`;
+                        el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Lexend, sans-serif'}`;
                         this.model.saveState();
                         this.renderer.draw();
                     }
@@ -133,7 +133,7 @@ export class ContextMenu {
                     label: 'Shrink', id: 'action-shrink',
                     action: () => {
                         el.fontSize = Math.max(8, (el.fontSize || 16) - 2);
-                        el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Poppins, sans-serif'}`;
+                        el.font = `normal ${el.fontSize}px ${el.fontFamily || 'Lexend, sans-serif'}`;
                         this.model.saveState();
                         this.renderer.draw();
                     }

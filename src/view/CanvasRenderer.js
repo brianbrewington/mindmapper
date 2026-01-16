@@ -94,7 +94,7 @@ export class CanvasRenderer {
         if (conn.label) {
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            ctx.font = '12px Poppins, sans-serif';
+            ctx.font = `12px ${FONTS.fallback}`;
             const textWidth = ctx.measureText(conn.label).width;
 
             ctx.fillStyle = COLORS.background; // Use theme background for label bg
@@ -282,7 +282,7 @@ export class CanvasRenderer {
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.fillStyle = 'white';
-        ctx.font = '8px Poppins';
+        ctx.font = `8px ${FONTS.fallback}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle'; // Fix centering
         ctx.fillText(text, x, y);
@@ -303,18 +303,18 @@ export class CanvasRenderer {
         ctx.fillRect(el.x, el.y, el.width, el.height);
         
         ctx.fillStyle = COLORS.imagePlaceholderText;
-        ctx.font = '16px Poppins';
+        ctx.font = `16px ${FONTS.fallback}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         if (isLoading) {
             ctx.fillText('⏳', el.x + el.width / 2, el.y + el.height / 2 - 10);
-            ctx.font = '12px Poppins';
+            ctx.font = `12px ${FONTS.fallback}`;
             ctx.fillText('Loading...', el.x + el.width / 2, el.y + el.height / 2 + 10);
         } else {
             ctx.fillText('🖼️', el.x + el.width / 2, el.y + el.height / 2 - 10);
             const urlText = el.url.length > 20 ? el.url.substring(0, 20) + '...' : el.url;
-            ctx.font = '12px Poppins';
+            ctx.font = `12px ${FONTS.fallback}`;
             ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 10);
         }
     }
@@ -331,18 +331,18 @@ export class CanvasRenderer {
         
         // Error icon and message
         ctx.fillStyle = '#c62828'; // Dark red text
-        ctx.font = '20px Poppins';
+        ctx.font = `20px ${FONTS.fallback}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('⚠️', el.x + el.width / 2, el.y + el.height / 2 - 15);
         
-        ctx.font = '12px Poppins';
+        ctx.font = `12px ${FONTS.fallback}`;
         ctx.fillText('Image failed to load', el.x + el.width / 2, el.y + el.height / 2 + 5);
         
         // Show truncated URL
         const urlText = el.url.length > 25 ? el.url.substring(0, 25) + '...' : el.url;
         ctx.fillStyle = '#666';
-        ctx.font = '10px Poppins';
+        ctx.font = `10px ${FONTS.fallback}`;
         ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 22);
         
         // Retry hint

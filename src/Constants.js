@@ -143,10 +143,17 @@ export const COLORS = new Proxy({}, {
 
 export const FONTS = {
     family: 'Lexend',
+    fallback: 'Lexend, sans-serif',
     defaultSize: 16,
-    defaultString: '16px Lexend',
+    defaultString: '16px Lexend, sans-serif',
     minSize: 8,
-    fullString: (size, family = 'Lexend') => `${size}px ${family}`
+    fullString: (size, family = 'Lexend') => {
+        // Don't add fallback if already present
+        if (family.includes('sans-serif')) {
+            return `${size}px ${family}`;
+        }
+        return `${size}px ${family}, sans-serif`;
+    }
 };
 
 export const CONFIG = {
