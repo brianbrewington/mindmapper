@@ -58,6 +58,7 @@ npm run test:ui      # Browser-based test dashboard
 | Zoom | Mouse scroll |
 | Add Bubble | Double-click or `B` |
 | Connect | Shift+click / Middle-click |
+| Open Link | Click 🔗 icon or Alt+click |
 | Context Menu | Right-click |
 | Delete | Select + `Delete` |
 | Undo/Redo | `Ctrl+Z` / `Ctrl+Y` |
