@@ -80,10 +80,12 @@ export function initApp() {
     // 9. Initialize Google Drive Client
     driveClient.init();
 
-    // 10. Wire up Drive Status Indicator
+    // 10. Wire up Drive Status Indicator (disabled until API key configured)
     const driveStatus = document.getElementById('driveStatus');
     if (driveStatus) {
-        // Update UI on auth state change
+        // Google Drive integration disabled - no API key configured yet
+        // When enabled, uncomment the below:
+        /*
         driveClient.onAuthChange((isAuthenticated) => {
             if (isAuthenticated) {
                 driveStatus.style.opacity = '1';
@@ -94,10 +96,10 @@ export function initApp() {
             }
         });
 
-        // Allow clicking to manually trigger auth
         driveStatus.addEventListener('click', () => {
             driveClient.ensureAuth().catch(console.error);
         });
+        */
     }
 
     // Initial draw

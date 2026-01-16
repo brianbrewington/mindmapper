@@ -235,9 +235,6 @@ export class Modal {
                 driveBtn = document.createElement('button');
                 driveBtn.id = 'genericModalDrive';
                 driveBtn.textContent = 'Google Drive';
-                driveBtn.style.backgroundColor = '#34A853';
-                driveBtn.style.color = 'white';
-                driveBtn.style.border = 'none';
                 // Insert before OK button
                 okBtn.parentNode.insertBefore(driveBtn, okBtn);
             }
@@ -246,8 +243,15 @@ export class Modal {
             input.style.display = 'none';
             okBtn.textContent = 'Local Storage';
             okBtn.style.display = 'block';
-            driveBtn.textContent = 'Google Drive';
+            driveBtn.textContent = 'Google Drive (coming soon)';
             driveBtn.style.display = 'block';
+            // Disabled until API key is configured
+            driveBtn.disabled = true;
+            driveBtn.style.backgroundColor = '#888';
+            driveBtn.style.color = '#ccc';
+            driveBtn.style.border = 'none';
+            driveBtn.style.cursor = 'not-allowed';
+            driveBtn.title = 'Google Drive integration requires API configuration';
             cancelBtn.style.display = 'block';
             cancelBtn.textContent = 'Cancel';
             modal.style.display = 'flex';
