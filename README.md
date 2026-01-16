@@ -1,115 +1,113 @@
-# Mind Mapper
+# MindMapper
 
-A simple, web-based mind mapping application built with Vanilla JavaScript and Vite.
+A modern, web-based mind mapping application built with Vanilla JavaScript and Vite. Create visual diagrams, present ideas with animated walkthroughs, and share self-contained HTML bundles.
 
 ![Mind Mapper Screenshot](screenshot.png)
 
-## Features
+## ✨ Features
 
-- **Visual Mind Maps**: Create bubbles, text annotations, and images (drag & drop supported).
-- **Interactive Connections**: Connect bubbles by middle-clicking or Shift-clicking.
-- **Scene Management**: Create sequences of views ("Scenes") for presentations, with custom delays and transitions.
-- **Animated Walkthroughs**: Play back scenes to tell a story or present an idea.
-- **Persistence**: automatically saves to local storage. Import/Export to JSON.
-- **JSON Storage**: Save and load your maps as JSON files for backup or sharing.
-- **Quine Mode**: "Bundle" the entire application and your map into a single self-contained HTML file that can be shared and opened offline.
-- **GEXF Export**: Export your graph structure for analysis in tools like Gephi.
+### Core
+- **Visual Mind Maps** — Bubbles, text annotations, and images (drag & drop)
+- **Interactive Connections** — Connect nodes via middle-click or Shift+click
+- **Infinite Canvas** — Pan and zoom with mouse
 
-## Getting Started
+### Presentations
+- **Scene Management** — Save viewport snapshots as "scenes"
+- **Animated Walkthroughs** — Play scenes with smooth camera transitions
+- **Custom Timing** — Set delay per scene for pacing
 
-### Prerequisites
+### Persistence
+- **Local/Cloud Save** — JSON files locally or to Google Drive
+- **Quine Bundling** — Export app + data as a single self-contained HTML file
+- **GEXF Export** — Graph format for analysis in Gephi
 
-- Node.js (v16+)
-- npm
+### Polish
+- **Dark Mode** — Default dark theme with toggle
+- **Keyboard Shortcuts** — Full keyboard navigation
+- **Loading States** — Visual feedback for async operations
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/brianbrewington/mindmapper.git
-   ```
-2. Install dependencies:
-   ```bash
-   cd mindmapper
-   npm install
-   ```
-
-### Usage
-
-Start the development server:
+## 🚀 Quick Start
 
 ```bash
-npm run dev
+# Install
+git clone https://github.com/brianbrewington/mindmapper.git
+cd mindmapper
+npm install
+
+# Run
+npm run dev          # Development server (http://localhost:5173)
+npm run build        # Production build
+npm run preview      # Preview production build
 ```
 
-Open your browser to the URL shown (usually `http://localhost:5173`).
-
-### Building for Production
-
-To build the application for deployment (creates a `dist` directory):
+## 🧪 Testing
 
 ```bash
-npm run build
+npm test             # Watch mode
+npm run test:run     # Single run (CI)
+npm run test:ui      # Browser-based test dashboard
 ```
 
-To preview the production build locally:
+**105 tests** across 35 test files. Pre-commit hook runs full suite + build.
 
-```bash
-npm run preview
-```
-
-### Running Tests
-
-To run the unit test suite (using Vitest):
-
-```bash
-npm test
-```
-
-
-### Controls
+## 🎮 Controls
 
 | Action | Control |
 |--------|---------|
-| **Pan** | Left-click drag on canvas |
-| **Zoom** | Mouse Scroll |
-| **Add Bubble** | Double-click canvas or press `B` |
-| **Connect** | Middle-click drag between bubbles (or Shift-click) |
-| **Context Menu** | Right-click on element |
-| **Delete** | Select + `Delete`/`Backspace` |
-| **Undo/Redo** | `Ctrl+Z` / `Ctrl+Y` |
+| Pan | Left-click drag |
+| Zoom | Mouse scroll |
+| Add Bubble | Double-click or `B` |
+| Connect | Shift+click / Middle-click |
+| Context Menu | Right-click |
+| Delete | Select + `Delete` |
+| Undo/Redo | `Ctrl+Z` / `Ctrl+Y` |
+| Resize | `+` / `-` |
+| Toggle Theme | 🌗 button |
 
-## Project Structure
+## 📁 Project Structure
 
-- `src/model`: Core logic and state management.
-- `src/view`: Canvas rendering and UI components.
-- `src/controller`: Input handling (mouse/keyboard).
-- `src/io`: Persistence and file handling.
+```
+mindmapper/
+├── src/
+│   ├── model/          # Data model (MindMapModel)
+│   ├── view/           # Rendering (CanvasRenderer, UIManager)
+│   ├── controller/     # Input handling (InputHandler)
+│   └── io/             # Persistence (PersistenceManager, DriveClient)
+├── docs/               # Documentation
+│   ├── ideas/          # Brainstorming
+│   ├── requirements/   # PRDs
+│   ├── design/         # Architecture
+│   └── bugs.md         # Known issues
+└── scripts/            # Build & test scripts
+```
 
-## Developer Guide
+## 📖 Documentation
 
-We follow a strict **Test-Driven Development (TDD)** workflow to ensure stability and prevent regressions.
+See [`docs/README.md`](docs/README.md) for full documentation index:
 
-### Best Practices
+- [Code Critique](docs/design/code_critique.md) — Quality analysis
+- [Known Bugs](docs/bugs.md) — Issue tracking
+- [JSON Format](docs/ideas/interoperability_format.md) — Schema for external tools
 
-1.  **Red-Green-Refactor**:
-    *   **Red**: Write a failing test for the new feature or bug fix *first*.
-    *   **Green**: Write the minimal code necessary to make the test pass.
-    *   **Refactor**: Clean up the code while ensuring tests stay green.
-2.  **Mocking**: Use `vitest` mocks for dependencies (Renderer, InputHandler) to isolate unit logic. Avoid relying on global state in unit tests.
-3.  **Pre-commit Hook**:
-    *   We use `husky` to run `scripts/pre-commit.sh` before every commit.
-    *   This script runs the **full test suite** and the **production build**.
-    *   **Do not bypass this hook** (e.g., avoid `git commit --no-verify`) unless absolutely necessary.
-4.  **Running Tests**:
-    *   `npm test`: Runs Vitest in watch mode (for development).
-    *   `npm run test:run`: Runs all tests once (used by CI/Hooks).
-5.  **Artifacts**: Keep `task.md` and `implementation_plan.md` updated in the `brain` directory (if using the AI assistant workflow).
+## 🛠 Development
 
-### Key Commands
+### TDD Workflow
 
-- **Verify All**: `./scripts/pre-commit.sh` - Runs tests and build manually.
+1. **Red** — Write a failing test first
+2. **Green** — Minimal code to pass
+3. **Refactor** — Clean up, tests stay green
 
-## License
+### Pre-commit Hook
+
+Husky runs `scripts/pre-commit.sh` before every commit:
+- Full test suite must pass
+- Production build must succeed
+
+```bash
+# Manual verification
+./scripts/pre-commit.sh
+```
+
+## 📄 License
 
 ISC
