@@ -85,6 +85,12 @@ export class ToolbarHelper {
             if (modal) modal.style.display = 'flex';
         });
 
+        // Info/About
+        bind('infoBtn', () => {
+            const modal = document.getElementById('infoModal');
+            if (modal) modal.style.display = 'flex';
+        });
+
         // Close Modal Buttons
         document.querySelectorAll('.close-modal-btn').forEach(btn => {
             btn.addEventListener('click', () => {

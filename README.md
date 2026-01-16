@@ -1,6 +1,11 @@
-# MindMapper
+# 🧠📍 MindMapper
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-105%20passing-brightgreen.svg)]()
 
 A modern, web-based mind mapping application built with Vanilla JavaScript and Vite. Create visual diagrams, present ideas with animated walkthroughs, and share self-contained HTML bundles.
+
+**Author:** Brian Brewington | **Since:** 2025
 
 ![Mind Mapper Screenshot](screenshot.png)
 
@@ -111,4 +116,4 @@ Husky runs `scripts/pre-commit.sh` before every commit:
 
 ## 📄 License
 
-ISC
+MIT — See [LICENSE](LICENSE) for details.

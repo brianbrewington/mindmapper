@@ -1,7 +1,7 @@
 {
-  "name": "mindmapper-refactor",
+  "name": "mindmapper",
   "version": "1.0.0",
-  "description": "Modularized Mind Mapping Application",
+  "description": "A simple, elegant mind mapping tool for visual thinking",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,10 +14,12 @@
   },
   "keywords": [
     "mindmap",
-    "visualization"
+    "visualization",
+    "brainstorming",
+    "canvas"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Brian Brewington",
+  "license": "MIT",
   "devDependencies": {
     "@vitest/ui": "^2.1.0",
     "husky": "^9.1.7",

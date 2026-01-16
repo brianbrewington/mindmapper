@@ -226,6 +226,31 @@ input[type="file"] {
     z-index: 1001;
 }
 
+#infoBtn {
+    position: absolute;
+    top: 10px;
+    right: 60px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border-color);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#infoBtn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
 /* Shared Modal Overlay */
 .modal-overlay {
     display: none;
@@ -257,6 +282,7 @@ input[type="file"] {
 /* Apply to specific modals */
 #helpModal,
 #commentModal,
+#infoModal,
 #genericModal {
     display: none;
     /* Default state */
@@ -265,7 +291,8 @@ input[type="file"] {
 /* But genericModal is created in JS, so we'll just add class there. 
    Existing IDs help select them. */
 #helpModal,
-#commentModal {
+#commentModal,
+#infoModal {
     /* reuse .modal-overlay props if we add class, else keep existing: */
     position: fixed;
     top: 0;
@@ -276,6 +303,69 @@ input[type="file"] {
     z-index: 2000;
     justify-content: center;
     align-items: center;
+}
+
+/* Info/About Modal Styling */
+.info-modal-content {
+    text-align: center;
+    max-width: 400px;
+}
+
+.app-logo {
+    position: relative;
+    display: inline-block;
+    font-size: 64px;
+    margin-bottom: 10px;
+}
+
+.logo-brain {
+    display: inline-block;
+}
+
+.logo-pin {
+    position: absolute;
+    font-size: 28px;
+    bottom: -5px;
+    right: -10px;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+}
+
+.app-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.2em;
+    font-weight: 600;
+    margin: 10px 0 5px 0;
+    background: linear-gradient(135deg, var(--primary-color), #9b59b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.app-tagline {
+    font-family: 'Nunito', sans-serif;
+    font-style: italic;
+    opacity: 0.8;
+    margin: 0 0 20px 0;
+}
+
+.app-info {
+    background: var(--button-bg);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+.app-info p {
+    margin: 8px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95em;
+}
+
+.app-description {
+    font-size: 0.9em;
+    line-height: 1.6;
+    opacity: 0.9;
 }
 
 .modal-content h2 {
