@@ -439,7 +439,7 @@ input[type="file"] {
 /* Scenes panel styling */
 #scenesPanel {
     position: absolute;
-    top: 50px;
+    top: 60px;
     right: 10px;
     width: 300px;
     background: var(--panel-bg);
