@@ -1,4 +1,5 @@
 import { Modal } from '../view/Modal.js';
+import { Loading } from '../view/Loading.js';
 import { LocalStorageProvider } from './storage/LocalStorageProvider.js';
 import { DriveStorageProvider } from './storage/DriveStorageProvider.js';
 import { ThemeManager } from '../Constants.js';
@@ -59,10 +60,13 @@ export class PersistenceManager {
         };
 
         try {
+            Loading.show('Saving...');
             await provider.save('mindmap.json', JSON.stringify(data, null, 2), 'application/json');
         } catch (e) {
             console.error('Save failed:', e);
             alert('Failed to save file: ' + e.message);
+        } finally {
+            Loading.hide();
         }
     }
 
@@ -75,6 +79,7 @@ export class PersistenceManager {
 
         const provider = this.providers[choice];
         try {
+            Loading.show('Loading...');
             const jsonString = await provider.load();
             this.loadFromJSONString(jsonString);
         } catch (e) {
@@ -82,6 +87,8 @@ export class PersistenceManager {
                 console.error('Load failed:', e);
                 alert('Failed to load file: ' + e.message);
             }
+        } finally {
+            Loading.hide();
         }
     }
 
@@ -136,35 +143,46 @@ export class PersistenceManager {
      * and triggers a download of the new HTML file.
      */
     createBundle() {
-        console.log('Creating bundle...');
-        const data = {
-            elements: this.model.elements,
-            connections: this.model.connections,
-            scenes: this.model.scenes,
-            version: '1.0',
-            timestamp: new Date().toISOString()
-        };
+        Loading.show('Creating bundle...');
+        
+        try {
+            console.log('Creating bundle...');
+            const data = {
+                elements: this.model.elements,
+                connections: this.model.connections,
+                scenes: this.model.scenes,
+                version: '1.0',
+                timestamp: new Date().toISOString()
+            };
 
-        // Clean up DOM before capturing
-        // Remove DebugOverlay if present
-        const overlays = document.querySelectorAll('div[style*="position: fixed"][style*="bottom: 10px"]');
-        const overlayParent = overlays.length > 0 ? overlays[0].parentNode : null;
-        const overlayBackup = overlays.length > 0 ? overlays[0] : null;
+            // Clean up DOM before capturing
+            // Remove DebugOverlay if present
+            const overlays = document.querySelectorAll('div[style*="position: fixed"][style*="bottom: 10px"]');
+            const overlayParent = overlays.length > 0 ? overlays[0].parentNode : null;
+            const overlayBackup = overlays.length > 0 ? overlays[0] : null;
 
-        if (overlayBackup) {
-            overlayBackup.remove();
+            // Also hide the loading indicator itself before capturing
+            const loader = document.getElementById('loadingIndicator');
+            const loaderWasVisible = loader && loader.style.display !== 'none';
+            if (loader) loader.style.display = 'none';
+
+            if (overlayBackup) {
+                overlayBackup.remove();
+            }
+
+            const htmlContent = document.documentElement.outerHTML;
+
+            // Restore overlay
+            if (overlayBackup && overlayParent) {
+                overlayParent.appendChild(overlayBackup);
+            }
+
+            const bundleHTML = PersistenceManager.generateBundleHTML(htmlContent, data);
+            // Always use local provider for bundle downloads
+            this.providers.local.save(`mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, bundleHTML, 'text/html');
+        } finally {
+            Loading.hide();
         }
-
-        const htmlContent = document.documentElement.outerHTML;
-
-        // Restore overlay
-        if (overlayBackup && overlayParent) {
-            overlayParent.appendChild(overlayBackup);
-        }
-
-        const bundleHTML = PersistenceManager.generateBundleHTML(htmlContent, data);
-        // Always use local provider for bundle downloads
-        this.providers.local.save(`mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, bundleHTML, 'text/html');
     }
 
 
