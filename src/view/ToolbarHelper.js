@@ -107,17 +107,29 @@ export class ToolbarHelper {
             swatch.style.backgroundColor = color;
             swatch.title = color;
 
+            // Highlight the current default color
+            if (this.model.defaultColor === color) {
+                swatch.classList.add('selected');
+            }
+
             swatch.onclick = (e) => {
                 e.stopPropagation();
+
+                // Remove selection from all swatches
+                paletteContainer.querySelectorAll('.color-swatch').forEach(s => {
+                    s.classList.remove('selected');
+                });
+                // Add selection to clicked swatch
+                swatch.classList.add('selected');
 
                 // Update selected element if it's a bubble
                 if (this.model.selectedElement && this.model.selectedElement.type === 'bubble') {
                     this.model.updateElement(this.model.selectedElement.id, { color: color });
                     this.renderer.draw();
-                } else {
-                    // Set default color for NEW bubbles
-                    this.model.setDefaultColor(color);
                 }
+                
+                // Always set as default color for NEW bubbles
+                this.model.setDefaultColor(color);
             };
 
             paletteContainer.appendChild(swatch);

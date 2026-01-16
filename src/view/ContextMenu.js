@@ -217,16 +217,20 @@ export class ContextMenu {
         if (modal) {
             const display = document.getElementById('commentDisplay');
             const input = document.getElementById('commentEditInput');
-
-            modal.style.display = 'flex';
-            if (display) display.textContent = target.comment || '(No comment)';
-
             const editBtn = document.getElementById('editCommentBtn');
             const saveBtn = document.getElementById('saveCommentBtn');
-            if (editBtn) editBtn.style.display = 'inline-block';
-            if (saveBtn) saveBtn.style.display = 'none';
-            if (input) input.style.display = 'none';
-            if (display) display.style.display = 'block';
+
+            modal.style.display = 'flex';
+
+            // Go directly to edit mode
+            if (display) display.style.display = 'none';
+            if (input) {
+                input.style.display = 'block';
+                input.value = target.comment || '';
+                input.focus();
+            }
+            if (editBtn) editBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'inline-block';
         }
     }
 

@@ -187,10 +187,10 @@ describe('Comment System Fixes', () => {
         });
         document.getElementById('contextMenu').querySelector('[data-id="action-comment"]').click();
 
-        // 4. Verify Display shows comment
-        const display = document.getElementById('commentDisplay');
-        expect(display.style.display).toBe('block');
-        expect(display.textContent).toBe('Persistent Comment');
+        // 4. Verify modal opens directly in edit mode with existing comment pre-filled
+        const editInput = document.getElementById('commentEditInput');
+        expect(editInput.style.display).toBe('block');
+        expect(editInput.value).toBe('Persistent Comment');
     });
 
     it('should allow adding links to connections', async () => {
