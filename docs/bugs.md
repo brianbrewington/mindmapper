@@ -37,6 +37,8 @@ Format: `- [ ] Description (File/Context)`
 - [x] **Replace Blocking Prompts in UIManager**: Replaced with custom `Modal` class. (2025-12-19)
 - [x] **Replace Blocking Prompts in ScenesPanel**: Replaced with Modal class. (2026-01-16) `ScenesPanel.js` still uses native `prompt()` and `confirm()` for scene operations.
 - [x] **Add Loading Indicators**: Added spinner overlay for save/load/bundle operations. (2026-01-16)
+- [x] **Color Palette Selection Indicator**: Clicking a color swatch now shows a thin outline to indicate selection. (2026-01-16)
+- [x] **Comment Modal Auto-Edit Mode**: When selecting "Comment" from context menu (esp. for edges), modal opens directly in edit mode with input focused. (2026-01-16)
 
 ## 🚀 Features & Enhancements
 
