@@ -29,7 +29,7 @@ Format: `- [ ] Description (File/Context)`
 - [ ] **Decouple Renderer Selection**: `CanvasRenderer` accesses `model.selectedElement` directly (marked as hacky). Should be passed in or handled via state.
 - [x] **Fragile Bundle Creation**: `PersistenceManager` uses robust `decodeURIComponent` and safe injection. (Fixed 2025-12-19)
 - [x] **Hardcoded Visuals**: Fonts and magic numbers are now in `src/Constants.js`, mostly used by `CanvasRenderer`. (Fixed 2025-12-14)
-- [ ] **Missing Error Handling**: Image loading failures leave elements in 'loading' state indefinitely or silently fail.
+- [x] **Missing Error Handling**: Image load errors now show visual error state with retry on double-click. (2026-01-16)
 - [x] **Duplicate Method Definition**: `InputHandler.js` had `setUIManager` defined twice. (Fixed 2026-01-16)
 
 

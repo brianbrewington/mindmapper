@@ -239,23 +239,34 @@ export class CanvasRenderer {
             this.drawResizeHandles(el, ctx);
         }
 
-        // Image content
-        const img = this.imageCache.get(el.url);
-        if (img) {
-            try {
-                ctx.drawImage(img, el.x, el.y, el.width, el.height);
-            } catch (e) {
-                this.drawImagePlaceholder(el, ctx);
-            }
+        // Check for failed images first
+        if (el.loadError) {
+            this.drawImageError(el, ctx);
         } else {
-            this.drawImagePlaceholder(el, ctx);
-            // Trigger load
-            if (!el.loading) {
-                el.loading = true;
-                this.loadImage(el.url).then(() => {
-                    el.loading = false;
-                    this.draw();
-                }).catch(() => { el.loading = false; });
+            // Image content
+            const img = this.imageCache.get(el.url);
+            if (img) {
+                try {
+                    ctx.drawImage(img, el.x, el.y, el.width, el.height);
+                } catch (e) {
+                    this.drawImagePlaceholder(el, ctx);
+                }
+            } else {
+                this.drawImagePlaceholder(el, ctx, el.loading);
+                // Trigger load
+                if (!el.loading) {
+                    el.loading = true;
+                    this.loadImage(el.url).then(() => {
+                        el.loading = false;
+                        el.loadError = false;
+                        this.draw();
+                    }).catch((err) => {
+                        el.loading = false;
+                        el.loadError = true;
+                        console.error(`Failed to load image: ${el.url}`, err);
+                        this.draw();
+                    });
+                }
             }
         }
 
@@ -286,17 +297,57 @@ export class CanvasRenderer {
         ctx.fillRect(el.x + el.width - handleSize / 2, el.y + el.height - handleSize / 2, handleSize, handleSize); // BR
     }
 
-    drawImagePlaceholder(el, ctx) {
+    drawImagePlaceholder(el, ctx, isLoading = false) {
+        // Background
         ctx.fillStyle = COLORS.imagePlaceholder;
+        ctx.fillRect(el.x, el.y, el.width, el.height);
+        
+        ctx.fillStyle = COLORS.imagePlaceholderText;
         ctx.font = '16px Poppins';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🖼️', el.x + el.width / 2, el.y + el.height / 2 - 10);
+        
+        if (isLoading) {
+            ctx.fillText('⏳', el.x + el.width / 2, el.y + el.height / 2 - 10);
+            ctx.font = '12px Poppins';
+            ctx.fillText('Loading...', el.x + el.width / 2, el.y + el.height / 2 + 10);
+        } else {
+            ctx.fillText('🖼️', el.x + el.width / 2, el.y + el.height / 2 - 10);
+            const urlText = el.url.length > 20 ? el.url.substring(0, 20) + '...' : el.url;
+            ctx.font = '12px Poppins';
+            ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 10);
+        }
+    }
 
-        const urlText = el.url.length > 20 ? el.url.substring(0, 20) + '...' : el.url;
-        ctx.fillStyle = COLORS.imagePlaceholderText;
+    /**
+     * Draws an error state for a failed image load.
+     * @param {Object} el - The image element.
+     * @param {CanvasRenderingContext2D} ctx - The canvas context.
+     */
+    drawImageError(el, ctx) {
+        // Error background
+        ctx.fillStyle = '#ffebee'; // Light red background
+        ctx.fillRect(el.x, el.y, el.width, el.height);
+        
+        // Error icon and message
+        ctx.fillStyle = '#c62828'; // Dark red text
+        ctx.font = '20px Poppins';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚠️', el.x + el.width / 2, el.y + el.height / 2 - 15);
+        
         ctx.font = '12px Poppins';
-        ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 10);
+        ctx.fillText('Image failed to load', el.x + el.width / 2, el.y + el.height / 2 + 5);
+        
+        // Show truncated URL
+        const urlText = el.url.length > 25 ? el.url.substring(0, 25) + '...' : el.url;
+        ctx.fillStyle = '#666';
+        ctx.font = '10px Poppins';
+        ctx.fillText(urlText, el.x + el.width / 2, el.y + el.height / 2 + 22);
+        
+        // Retry hint
+        ctx.fillStyle = '#1976d2';
+        ctx.fillText('Double-click to retry', el.x + el.width / 2, el.y + el.height / 2 + 38);
     }
 
     loadImage(url) {

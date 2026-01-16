@@ -254,6 +254,13 @@ export class InputHandler {
             // Request Edit
             const event = new CustomEvent('requestEditBubble', { detail: { element: hit.element } });
             document.dispatchEvent(event);
+        } else if (hit.type === 'element' && hit.element.type === 'image' && hit.element.loadError) {
+            // Retry loading failed image
+            hit.element.loadError = false;
+            hit.element.loading = false;
+            // Clear from cache to force reload
+            this.renderer.imageCache.delete(hit.element.url);
+            this.renderer.draw();
         } else {
             // Request Create
             const event = new CustomEvent('requestCreateBubble', { detail: { x: pos.x, y: pos.y } });
