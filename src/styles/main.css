@@ -319,10 +319,10 @@ input[type="file"] {
 
 .logo-pin {
     position: absolute;
-    font-size: 24px;
-    top: 50%;
+    font-size: 28px;
+    top: -8px;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-15deg);
+    transform: translateX(-50%) rotate(30deg);
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 

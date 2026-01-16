@@ -386,7 +386,7 @@ export class CanvasRenderer {
         });
 
         // Add padding
-        const padding = 50;
+        const padding = CONFIG.zoomExtentsPadding;
         const width = maxX - minX + padding * 2;
         const height = maxY - minY + padding * 2;
         const centerX = (minX + maxX) / 2;

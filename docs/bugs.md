@@ -19,7 +19,6 @@ Format: `- [ ] Description (File/Context)`
 - [x] **Shift-Click to Connect**: Implemented in `InputHandler.js`. (2025-12-13)
 - [x] **Color Buttons Broken**: The color palette buttons do not work for bubbles at all. (Fixed 2025-12-14: Implemented `defaultColor` and `updateElement` in Model)
 - [ ] **Force Layout Action**: Button exists but logs to console. Need physics engine.
-- [ ] **Complete Resize Logic**: `InputHandler.js` only handles `top-left` resizing; other handles are missing/simplified.
 - [x] **Fix Ghost Connection Drawing**: `CanvasRenderer.js` no longer relies on `InputHandler` drawing directly. `InputHandler` sets state, `CanvasRenderer` draws. (Fixed 2025-12-13)
 
 

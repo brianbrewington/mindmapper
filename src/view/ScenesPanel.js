@@ -297,8 +297,8 @@ export class ScenesPanel {
 
             setTimeout(() => {
                 overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 300);
-            }, 2000);
+                setTimeout(() => overlay.style.display = 'none', CONFIG.sceneOverlayFadeDuration);
+            }, CONFIG.defaultSceneDuration);
         }
     }
 }

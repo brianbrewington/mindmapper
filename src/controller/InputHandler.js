@@ -150,11 +150,20 @@ export class InputHandler {
             const hit = this.hitTest(e.clientX, e.clientY);
             const worldPos = this.renderer.screenToWorld(e.clientX, e.clientY);
             
-            // Check if hovering over link icon - show pointer cursor
-            if (this.canvas && this.canvas.style) {
-                if (hit.type === 'element' && hit.element.link && this.isClickOnLinkIcon(hit.element, worldPos)) {
+            // Update cursor based on what's under the mouse
+            if (this.canvas && this.canvas.style && !this.isDragging) {
+                if (hit.type === 'resizeHandle') {
+                    // Resize cursors based on which corner
+                    const cursorMap = {
+                        'top-left': 'nwse-resize',
+                        'top-right': 'nesw-resize',
+                        'bottom-left': 'nesw-resize',
+                        'bottom-right': 'nwse-resize',
+                    };
+                    this.canvas.style.cursor = cursorMap[hit.handle] || 'default';
+                } else if (hit.type === 'element' && hit.element.link && this.isClickOnLinkIcon(hit.element, worldPos)) {
                     this.canvas.style.cursor = 'pointer';
-                } else if (!this.isDragging) {
+                } else {
                     this.canvas.style.cursor = 'default';
                 }
             }
@@ -193,10 +202,49 @@ export class InputHandler {
         const el = this.resizingElement;
         const worldDx = dx / this.renderer.cameraZoom;
         const worldDy = dy / this.renderer.cameraZoom;
+        const minSize = CONFIG.minElementSize;
 
         switch (this.resizeHandle) {
-            case 'top-left': el.x += worldDx; el.y += worldDy; el.width -= worldDx; el.height -= worldDy; break;
-            // ... handle other cases
+            case 'top-left':
+                // Move origin and shrink from top-left
+                if (el.width - worldDx >= minSize) {
+                    el.x += worldDx;
+                    el.width -= worldDx;
+                }
+                if (el.height - worldDy >= minSize) {
+                    el.y += worldDy;
+                    el.height -= worldDy;
+                }
+                break;
+            case 'top-right':
+                // Expand right, shrink from top
+                if (el.width + worldDx >= minSize) {
+                    el.width += worldDx;
+                }
+                if (el.height - worldDy >= minSize) {
+                    el.y += worldDy;
+                    el.height -= worldDy;
+                }
+                break;
+            case 'bottom-left':
+                // Move origin X, expand down
+                if (el.width - worldDx >= minSize) {
+                    el.x += worldDx;
+                    el.width -= worldDx;
+                }
+                if (el.height + worldDy >= minSize) {
+                    el.height += worldDy;
+                }
+                break;
+            case 'bottom-right':
+                // Expand right and down
+                if (el.width + worldDx >= minSize) {
+                    el.width += worldDx;
+                }
+                if (el.height + worldDy >= minSize) {
+                    el.height += worldDy;
+                }
+                break;
         }
     }
 
@@ -411,16 +459,53 @@ export class InputHandler {
 
     /**
      * Performs hit testing to find elements/connections at screen coordinates.
+     * Also checks for resize handles on selected image elements.
      * @param {number} x 
      * @param {number} y 
-     * @returns {Object} { type: 'element'|'connection'|'none', element?: Object }
+     * @returns {Object} { type: 'element'|'connection'|'resizeHandle'|'none', element?: Object, handle?: string }
      */
     hitTest(x, y) {
         const worldPos = this.renderer.screenToWorld(x, y);
         // Calculate tolerance based on zoom (e.g., 10px screen space)
         const hitThreshold = CONFIG.connectionHitThreshold / this.renderer.cameraZoom;
 
+        // Check resize handles first (only for selected images)
+        const selected = this.model.selectedElement;
+        if (selected && selected.type === 'image') {
+            const handleHit = this.checkResizeHandle(selected, worldPos.x, worldPos.y);
+            if (handleHit) {
+                return { type: 'resizeHandle', element: selected, handle: handleHit };
+            }
+        }
+
         return this.model.hitTest(worldPos.x, worldPos.y, hitThreshold);
+    }
+
+    /**
+     * Checks if a point is on one of the resize handles of an element.
+     * @param {Object} el - The element (image) to check.
+     * @param {number} x - World X coordinate.
+     * @param {number} y - World Y coordinate.
+     * @returns {string|null} Handle name ('top-left', 'top-right', 'bottom-left', 'bottom-right') or null.
+     */
+    checkResizeHandle(el, x, y) {
+        const handleSize = CONFIG.resizeHandleSize / this.renderer.cameraZoom;
+        const halfHandle = handleSize / 2;
+
+        const handles = {
+            'top-left': { x: el.x, y: el.y },
+            'top-right': { x: el.x + el.width, y: el.y },
+            'bottom-left': { x: el.x, y: el.y + el.height },
+            'bottom-right': { x: el.x + el.width, y: el.y + el.height },
+        };
+
+        for (const [name, pos] of Object.entries(handles)) {
+            if (x >= pos.x - halfHandle && x <= pos.x + halfHandle &&
+                y >= pos.y - halfHandle && y <= pos.y + halfHandle) {
+                return name;
+            }
+        }
+        return null;
     }
 
     /**

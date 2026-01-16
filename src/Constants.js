@@ -157,11 +157,51 @@ export const FONTS = {
 };
 
 export const CONFIG = {
+    // Zoom
     minZoom: 0.1,
     maxZoom: 5,
+    zoomExtentsPadding: 50,
+    
+    // Scenes
     defaultSceneDuration: 2000,
+    sceneOverlayFadeDuration: 300,
+    
+    // Hit Testing & Handles
     connectionHitThreshold: 10,
     resizeHandleSize: 8,
+    minElementSize: 20,
+    
+    // Bubble Layout
     bubblePaddingX: 20,
     bubblePaddingY: 15,
+    
+    // UI Dimensions
+    tooltipMaxWidth: 200,
+    modalWidth: 300,
+    contextMenuShadow: '2px 2px 5px rgba(0,0,0,0.2)',
+    
+    // Spacing
+    spacing: {
+        xs: 2,
+        sm: 4,
+        md: 8,
+        lg: 15,
+    },
+    
+    // Font Sizes (for canvas drawing)
+    fontSize: {
+        xs: 8,
+        sm: 10,
+        md: 12,
+        lg: 14,
+        xl: 16,
+        xxl: 20,
+    },
+    
+    // Border Radius
+    borderRadius: {
+        sm: 4,
+        md: 5,
+        lg: 8,
+    },
 };
