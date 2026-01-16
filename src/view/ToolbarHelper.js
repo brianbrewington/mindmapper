@@ -128,8 +128,16 @@ export class ToolbarHelper {
                 // Add selection to clicked swatch
                 swatch.classList.add('selected');
 
-                // Update selected element if it's a bubble
-                if (this.model.selectedElement && this.model.selectedElement.type === 'bubble') {
+                // Update all multi-selected bubbles
+                if (this.model.selectedElements && this.model.selectedElements.length > 0) {
+                    this.model.selectedElements.forEach(el => {
+                        if (el.type === 'bubble') {
+                            this.model.updateElement(el.id, { color: color });
+                        }
+                    });
+                    this.renderer.draw();
+                } else if (this.model.selectedElement && this.model.selectedElement.type === 'bubble') {
+                    // Fallback to single selection
                     this.model.updateElement(this.model.selectedElement.id, { color: color });
                     this.renderer.draw();
                 }

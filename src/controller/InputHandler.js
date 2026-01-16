@@ -124,11 +124,21 @@ export class InputHandler {
                     this.draggedElement = result.element;
                     this.startDrag(pos);
                 } else {
-                    // Normal click - clear multi-selection, select just this element
-                    this.selectedElements = [result.element];
-                    this.model.selectedElement = result.element;
-                    this.draggedElement = result.element;
-                    this.startDrag(pos);
+                    // Normal click - check if clicking on an already-selected element
+                    const isAlreadySelected = this.selectedElements.some(el => el.id === result.element.id);
+                    
+                    if (isAlreadySelected && this.selectedElements.length > 1) {
+                        // Keep multi-selection intact for group drag
+                        this.model.selectedElement = result.element;
+                        this.draggedElement = result.element;
+                        this.startDrag(pos);
+                    } else {
+                        // Clear multi-selection, select just this element
+                        this.selectedElements = [result.element];
+                        this.model.selectedElement = result.element;
+                        this.draggedElement = result.element;
+                        this.startDrag(pos);
+                    }
                 }
             } else if (result.type === 'connection') {
                 // Navigation (Alt + Click)

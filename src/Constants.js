@@ -94,30 +94,51 @@ class _ThemeManager {
      * Resolves a color (hex) to its current theme equivalent.
      * Use this when you have a stored hex code (e.g. from the model) 
      * and need to render it correctly in the current mode.
+     * Supports bidirectional conversion: light↔dark
      */
     resolveColor(hex) {
         if (!hex) return hex;
+        
+        const normalizedHex = hex.toLowerCase();
 
-        // If mode is light, return the hex (assuming stored hexes are light-based)
         if (this.currentMode === 'light') {
+            // Check if this is a dark palette color that needs to convert to light
+            const pairFromDark = COLOR_PAIRS.find(p => p.dark.toLowerCase() === normalizedHex);
+            if (pairFromDark) {
+                return pairFromDark.light;
+            }
+            
+            // Check default bubble color
+            if (normalizedHex === DARK_THEME.defaultBubble.toLowerCase()) {
+                return LIGHT_THEME.defaultBubble;
+            }
+            
+            // Resolve white text to black in Light Mode
+            if (normalizedHex === '#ffffff' || normalizedHex === '#fff' || hex === 'white') {
+                return LIGHT_THEME.defaultText;
+            }
+            
+            // Already a light color or custom - return as-is
             return hex;
         }
 
-        // If mode is dark, check if this hex has a pair
-        const pair = COLOR_PAIRS.find(p => p.light === hex);
-        if (pair) {
-            return pair.dark;
+        // Dark mode: convert light colors to dark
+        const pairFromLight = COLOR_PAIRS.find(p => p.light.toLowerCase() === normalizedHex);
+        if (pairFromLight) {
+            return pairFromLight.dark;
         }
 
-        // Also check if it matches the default bubble color
-        if (hex === LIGHT_THEME.defaultBubble) return DARK_THEME.defaultBubble;
+        // Check default bubble color
+        if (normalizedHex === LIGHT_THEME.defaultBubble.toLowerCase()) {
+            return DARK_THEME.defaultBubble;
+        }
 
         // Resolve common dark text colors to white in Dark Mode
-        if (hex === LIGHT_THEME.defaultText || hex === '#000000' || hex === '#000' || hex === 'black' || hex === '#333333' || hex === '#333') {
+        if (normalizedHex === '#000000' || normalizedHex === '#000' || hex === 'black' || normalizedHex === '#333333' || normalizedHex === '#333') {
             return DARK_THEME.defaultText;
         }
 
-        // Custom color? Return as is for now.
+        // Custom color? Return as is.
         return hex;
     }
 
