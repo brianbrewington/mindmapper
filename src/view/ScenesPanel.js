@@ -137,6 +137,17 @@ export class ScenesPanel {
                 this.updateSceneButtons();
             };
 
+            // Double-click to rename
+            item.ondblclick = async (e) => {
+                e.stopPropagation();
+                const name = await Modal.showPrompt('Rename Scene:', scene.name);
+                if (name) {
+                    scene.name = name;
+                    this.model.saveState();
+                    this.renderScenesList();
+                }
+            };
+
             // Buttons Container
             const btnContainer = document.createElement('div');
             btnContainer.style.display = 'flex';

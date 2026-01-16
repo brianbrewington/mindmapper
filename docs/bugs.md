@@ -59,3 +59,5 @@ Format: `- [ ] Description (File/Context)`
 - [x] **Animated Scene Transitions**: Added smooth camera animations with eased "whoosh" effect during scene playback. (2026-01-16)
 - [x] **Google Drive Integration**: Implemented DriveClient, DriveStorageProvider, and storage choice modal for save/load. (2026-01-16)
 - [x] **Vitest UI Dashboard**: Added `npm run test:ui` for browser-based test runner. (2026-01-16)
+- [x] **Complete Resize Logic**: All 4 corner resize handles now work for images (TL, TR, BL, BR) with proper cursor feedback. (2026-01-17)
+- [x] **Consolidate Magic Numbers**: Added more CONFIG constants for spacing, font sizes, timeouts. (2026-01-17)
