@@ -265,8 +265,12 @@ export class InputHandler {
         const hit = this.hitTest(e.clientX, e.clientY);
 
         if (hit.type === 'element' && hit.element.type === 'bubble') {
-            // Request Edit
+            // Request Edit Bubble
             const event = new CustomEvent('requestEditBubble', { detail: { element: hit.element } });
+            document.dispatchEvent(event);
+        } else if (hit.type === 'element' && hit.element.type === 'text') {
+            // Request Edit Text Annotation
+            const event = new CustomEvent('requestEditText', { detail: { element: hit.element } });
             document.dispatchEvent(event);
         } else if (hit.type === 'element' && hit.element.type === 'image' && hit.element.loadError) {
             // Retry loading failed image
@@ -275,8 +279,8 @@ export class InputHandler {
             // Clear from cache to force reload
             this.renderer.imageCache.delete(hit.element.url);
             this.renderer.draw();
-        } else {
-            // Request Create
+        } else if (hit.type !== 'element') {
+            // Only create new bubble if we didn't click on any element
             const event = new CustomEvent('requestCreateBubble', { detail: { x: pos.x, y: pos.y } });
             document.dispatchEvent(event);
         }

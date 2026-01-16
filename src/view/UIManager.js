@@ -192,6 +192,11 @@ export class UIManager {
             this.showInputAt(element.x, element.y, element.text, element);
         });
 
+        document.addEventListener('requestEditText', (e) => {
+            const { element } = e.detail;
+            this.showInputAt(element.x, element.y, element.text, element, 'text');
+        });
+
         document.addEventListener('requestContextMenu', (e) => {
             this.showContextMenu(e.detail);
         });
