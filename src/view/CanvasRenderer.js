@@ -113,7 +113,9 @@ export class CanvasRenderer {
      */
     drawElement(el) {
         const ctx = this.ctx;
-        const isSelected = (this.model.selectedElement && this.model.selectedElement.id === el.id);
+        // Check both single selection and multi-selection
+        const isSelected = (this.model.selectedElement && this.model.selectedElement.id === el.id) ||
+                          (this.model.selectedElements && this.model.selectedElements.some(e => e.id === el.id));
 
         // Resolve color pair if needed
         const resolvedColor = ThemeManager.resolveColor(el.color);

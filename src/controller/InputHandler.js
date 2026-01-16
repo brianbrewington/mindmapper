@@ -24,8 +24,23 @@ export class InputHandler {
 
         this.clipboard = null;
         this.connectionStartElement = null;
+        
+        // Multi-select support - store on model for renderer access
+        if (!this.model.selectedElements) {
+            this.model.selectedElements = [];
+        }
 
         this.setupEventListeners();
+    }
+
+    /** Getter for selectedElements (stored on model) */
+    get selectedElements() {
+        return this.model.selectedElements || [];
+    }
+
+    /** Setter for selectedElements (stored on model) */
+    set selectedElements(value) {
+        this.model.selectedElements = value;
     }
 
     setUIManager(uiManager) {
@@ -70,8 +85,8 @@ export class InputHandler {
                 return;
             }
 
-            // Shift+Click on bubble -> Connect
-            if (e.shiftKey && result.type === 'element' && result.element.type === 'bubble') {
+            // Ctrl+Click on bubble -> Connect
+            if ((e.ctrlKey || e.metaKey) && result.type === 'element' && result.element.type === 'bubble') {
                 this.handleConnectionStart(pos);
                 return;
             }
@@ -94,9 +109,27 @@ export class InputHandler {
                     return;
                 }
 
-                this.model.selectedElement = result.element;
-                this.draggedElement = result.element;
-                this.startDrag(pos);
+                // Shift+Click -> Multi-select (add to selection)
+                if (e.shiftKey) {
+                    const idx = this.selectedElements.findIndex(el => el.id === result.element.id);
+                    if (idx === -1) {
+                        // Add to selection
+                        this.selectedElements.push(result.element);
+                    } else {
+                        // Remove from selection (toggle)
+                        this.selectedElements.splice(idx, 1);
+                    }
+                    // Keep primary selection for compatibility
+                    this.model.selectedElement = result.element;
+                    this.draggedElement = result.element;
+                    this.startDrag(pos);
+                } else {
+                    // Normal click - clear multi-selection, select just this element
+                    this.selectedElements = [result.element];
+                    this.model.selectedElement = result.element;
+                    this.draggedElement = result.element;
+                    this.startDrag(pos);
+                }
             } else if (result.type === 'connection') {
                 // Navigation (Alt + Click)
                 if (e.altKey && result.connection.link) {
@@ -104,8 +137,13 @@ export class InputHandler {
                     return;
                 }
                 this.model.selectedElement = result.connection;
+                this.selectedElements = []; // Clear multi-select on connection select
             } else {
-                this.model.selectedElement = null; // Deselect
+                // Click on background
+                if (!e.shiftKey) {
+                    this.model.selectedElement = null; // Deselect
+                    this.selectedElements = []; // Clear multi-select
+                }
                 this.startDrag(pos); // Pan camera
             }
 
@@ -185,9 +223,21 @@ export class InputHandler {
         if (this.resizingElement) {
             this.handleResize(dx, dy);
         } else if (this.draggedElement) {
-            // Move Element
-            this.draggedElement.x += dx / this.renderer.cameraZoom;
-            this.draggedElement.y += dy / this.renderer.cameraZoom;
+            // Move all selected elements (multi-select support)
+            const worldDx = dx / this.renderer.cameraZoom;
+            const worldDy = dy / this.renderer.cameraZoom;
+            
+            if (this.selectedElements.length > 1) {
+                // Move all selected elements together
+                this.selectedElements.forEach(el => {
+                    el.x += worldDx;
+                    el.y += worldDy;
+                });
+            } else {
+                // Single element move
+                this.draggedElement.x += worldDx;
+                this.draggedElement.y += worldDy;
+            }
         } else {
             // Pan Camera
             this.renderer.cameraOffset.x += dx;
@@ -506,6 +556,32 @@ export class InputHandler {
             }
         }
         return null;
+    }
+
+    /**
+     * Checks if an element is currently selected (single or multi-select).
+     * @param {Object} element - The element to check.
+     * @returns {boolean} True if the element is selected.
+     */
+    isSelected(element) {
+        if (!element) return false;
+        return this.selectedElements.some(el => el.id === element.id);
+    }
+
+    /**
+     * Gets all currently selected elements.
+     * @returns {Array} Array of selected elements.
+     */
+    getSelectedElements() {
+        return this.selectedElements;
+    }
+
+    /**
+     * Clears all selections.
+     */
+    clearSelection() {
+        this.selectedElements = [];
+        this.model.selectedElement = null;
     }
 
     /**

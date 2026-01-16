@@ -13,7 +13,7 @@ A modern, web-based mind mapping application built with Vanilla JavaScript and V
 
 ### Core
 - **Visual Mind Maps** — Bubbles, text annotations, and images (drag & drop)
-- **Interactive Connections** — Connect nodes via middle-click or Shift+click
+- **Interactive Connections** — Connect nodes via Ctrl+click or middle-click
 - **Infinite Canvas** — Pan and zoom with mouse
 
 ### Presentations
@@ -62,7 +62,8 @@ npm run test:ui      # Browser-based test dashboard
 | Pan | Left-click drag |
 | Zoom | Mouse scroll |
 | Add Bubble | Double-click or `B` |
-| Connect | Shift+click / Middle-click |
+| Connect | Ctrl+click / Middle-click |
+| Multi-select | Shift+click |
 | Open Link | Click 🔗 icon or Alt+click |
 | Context Menu | Right-click |
 | Delete | Select + `Delete` |

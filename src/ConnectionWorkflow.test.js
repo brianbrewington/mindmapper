@@ -24,7 +24,7 @@ describe('Connection Workflow', () => {
         inputHandler = new InputHandler(model, renderer);
     });
 
-    it('should start connection mode on Shift-Click', () => {
+    it('should start connection mode on Ctrl-Click', () => {
         // Setup
         const bubble = { id: 1, type: 'bubble', x: 0, y: 0, radiusX: 50, radiusY: 30 };
         model.addElement(bubble);
@@ -32,11 +32,11 @@ describe('Connection Workflow', () => {
         // Mock hit test to return bubble
         vi.spyOn(inputHandler, 'hitTest').mockReturnValue({ type: 'element', element: bubble });
 
-        // Simulate Shift-Click
+        // Simulate Ctrl-Click
         const event = new MouseEvent('mousedown', {
             bubbles: true,
             cancelable: true,
-            shiftKey: true,
+            ctrlKey: true,
             button: 0,
             clientX: 0,
             clientY: 0
