@@ -44,33 +44,20 @@ export function initApp() {
 
     // 7. Theme Initialization
     const setupTheme = () => {
-        if (!window.matchMedia) {
-            console.warn('matchMedia not supported');
-            return;
-        }
-        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-        const applyTheme = (isDark) => {
-            const theme = isDark ? 'dark' : 'light';
-            console.log(`Applying theme: ${theme}`);
-            ThemeManager.setTheme(theme);
-            if (isDark) {
+        const applyThemeToDOM = (mode) => {
+            if (mode === 'dark') {
                 document.body.classList.add('dark-mode');
             } else {
                 document.body.classList.remove('dark-mode');
             }
         };
 
-        // Initial check
-        applyTheme(darkModeQuery.matches);
+        // Apply ThemeManager's default (dark) on startup
+        applyThemeToDOM(ThemeManager.getTheme());
 
-        // Listen for system changes
-        darkModeQuery.addEventListener('change', (e) => applyTheme(e.matches));
-
-        // Listen for internal changes (e.g. if we add a toggle later)
+        // Listen for theme changes (e.g. from toggle button or loaded data)
         ThemeManager.onThemeChange((mode) => {
-            if (mode === 'dark') document.body.classList.add('dark-mode');
-            else document.body.classList.remove('dark-mode');
+            applyThemeToDOM(mode);
         });
     };
     setupTheme();

@@ -68,7 +68,7 @@ const DARK_THEME = {
 
 class _ThemeManager {
     constructor() {
-        this.currentMode = 'light';
+        this.currentMode = 'dark'; // Default to dark mode
         this.listeners = new Set();
     }
 

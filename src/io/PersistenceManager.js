@@ -152,6 +152,7 @@ export class PersistenceManager {
                 connections: this.model.connections,
                 scenes: this.model.scenes,
                 version: '1.0',
+                theme: ThemeManager.getTheme(),
                 timestamp: new Date().toISOString()
             };
 
