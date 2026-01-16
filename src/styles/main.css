@@ -238,7 +238,6 @@ input[type="file"] {
     border: none;
     font-size: 24px;
     font-weight: bold;
-    font-style: italic;
     cursor: pointer;
     display: flex;
     align-items: center;
