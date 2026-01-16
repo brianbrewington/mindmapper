@@ -251,7 +251,7 @@ export class Modal {
             driveBtn.style.color = '#ccc';
             driveBtn.style.border = 'none';
             driveBtn.style.cursor = 'not-allowed';
-            driveBtn.title = 'Google Drive integration requires API configuration';
+            driveBtn.title = 'Not Yet Implemented';
             cancelBtn.style.display = 'block';
             cancelBtn.textContent = 'Cancel';
             modal.style.display = 'flex';
