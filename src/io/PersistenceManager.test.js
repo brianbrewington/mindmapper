@@ -31,8 +31,13 @@ describe('PersistenceManager', () => {
     it('should trigger storage.save on saveJSON', async () => {
         model.addElement({ id: 1, text: 'Test' });
 
-        const saveSpy = vi.spyOn(manager.storage, 'save');
+        // Updated: manager now uses providers.local instead of storage
+        const saveSpy = vi.spyOn(manager.providers.local, 'save');
         saveSpy.mockResolvedValue();
+
+        // Mock the storage choice modal to return 'local'
+        const { Modal } = await import('../view/Modal.js');
+        vi.spyOn(Modal, 'showStorageChoice').mockResolvedValue('local');
 
         await manager.saveJSON();
 
@@ -50,7 +55,8 @@ describe('PersistenceManager', () => {
     it('should create bundle with embedded data', () => {
         model.addElement({ id: 1, text: 'Bundle Node' });
 
-        const saveSpy = vi.spyOn(manager.storage, 'save');
+        // Updated: manager now uses providers.local instead of storage
+        const saveSpy = vi.spyOn(manager.providers.local, 'save');
         saveSpy.mockResolvedValue();
 
         // Mock document structure

@@ -3,6 +3,7 @@
  */
 
 import { COLORS, FONTS, CONFIG, ThemeManager } from '../Constants.js';
+// CONFIG is used for minZoom in animateToSceneViewport
 import { Modal } from './Modal.js';
 import { ToolbarHelper } from './ToolbarHelper.js';
 import { ScenesPanel } from './ScenesPanel.js';
@@ -276,7 +277,7 @@ export class UIManager {
     }
 
     /**
-     * Helper to restore a scene's viewport to the renderer.
+     * Helper to restore a scene's viewport to the renderer (instant, no animation).
      * @param {Object} scene 
      */
     restoreSceneViewport(scene) {
@@ -288,5 +289,78 @@ export class UIManager {
         if (this.renderer) {
             this.renderer.draw();
         }
+    }
+
+    /**
+     * Animates the camera to a scene's viewport with smooth easing.
+     * @param {Object} scene - The scene to animate to.
+     * @param {number} duration - Animation duration in ms (default 1500).
+     * @returns {Promise<void>} Resolves when animation completes or is cancelled.
+     */
+    animateToSceneViewport(scene, duration = 1500) {
+        if (!scene || !scene.viewport || !this.renderer) {
+            return Promise.resolve();
+        }
+
+        // Cancel any existing animation
+        if (this.currentAnimationCancel) {
+            this.currentAnimationCancel();
+            this.currentAnimationCancel = null;
+        }
+
+        return new Promise((resolve) => {
+            const startZoom = this.renderer.cameraZoom;
+            const startOffset = { ...this.renderer.cameraOffset };
+            const targetZoom = scene.viewport.zoom;
+            const targetOffset = scene.viewport.offset;
+            const startTime = performance.now();
+            let cancelled = false;
+
+            this.currentAnimationCancel = () => {
+                cancelled = true;
+                resolve();
+            };
+
+            const animate = (currentTime) => {
+                if (cancelled) return;
+
+                const elapsed = currentTime - startTime;
+                let progress = Math.min(elapsed / duration, 1);
+
+                // Cubic ease-in-out for smooth acceleration/deceleration
+                const eased = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                // Interpolate offset
+                this.renderer.cameraOffset.x = startOffset.x + (targetOffset.x - startOffset.x) * eased;
+                this.renderer.cameraOffset.y = startOffset.y + (targetOffset.y - startOffset.y) * eased;
+
+                // Interpolate zoom with "whoosh" effect (slight squeeze in the middle)
+                const interpolatedZoom = startZoom + (targetZoom - startZoom) * eased;
+                const whooshFactor = 1 - 0.3 * (4 * progress * (1 - progress));
+                this.renderer.cameraZoom = interpolatedZoom * whooshFactor;
+
+                // Enforce minimum zoom
+                if (this.renderer.cameraZoom < CONFIG.minZoom) {
+                    this.renderer.cameraZoom = CONFIG.minZoom;
+                }
+
+                this.renderer.draw();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Ensure we land exactly on target
+                    this.renderer.cameraZoom = targetZoom;
+                    this.renderer.cameraOffset = { ...targetOffset };
+                    this.renderer.draw();
+                    this.currentAnimationCancel = null;
+                    resolve();
+                }
+            };
+
+            requestAnimationFrame(animate);
+        });
     }
 }

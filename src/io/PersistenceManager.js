@@ -1,5 +1,6 @@
 import { Modal } from '../view/Modal.js';
 import { LocalStorageProvider } from './storage/LocalStorageProvider.js';
+import { DriveStorageProvider } from './storage/DriveStorageProvider.js';
 import { ThemeManager } from '../Constants.js';
 
 export class PersistenceManager {
@@ -13,11 +14,15 @@ export class PersistenceManager {
         this.renderer = renderer;
         this.uiManager = uiManager;
 
-        // Default to Local Storage
-        // Pass the existing file input if we want to reuse it, or let provider create one.
-        // For existing DOM compatibility:
+        // Initialize storage providers
         const fileInput = document.getElementById('loadFile');
-        this.storage = new LocalStorageProvider({ fileInput });
+        this.providers = {
+            local: new LocalStorageProvider({ fileInput }),
+            drive: new DriveStorageProvider()
+        };
+
+        // Default to local storage
+        this.activeProvider = this.providers.local;
     }
 
     /**
@@ -37,7 +42,14 @@ export class PersistenceManager {
         }
     }
 
+    /**
+     * Prompts user to choose storage location and saves the mindmap.
+     */
     async saveJSON() {
+        const choice = await Modal.showStorageChoice();
+        if (!choice) return; // User cancelled
+
+        const provider = this.providers[choice];
         const data = {
             elements: this.model.elements,
             connections: this.model.connections,
@@ -45,26 +57,37 @@ export class PersistenceManager {
             version: '1.0',
             theme: ThemeManager.getTheme()
         };
+
         try {
-            await this.storage.save('mindmap.json', JSON.stringify(data, null, 2), 'application/json');
+            await provider.save('mindmap.json', JSON.stringify(data, null, 2), 'application/json');
         } catch (e) {
             console.error('Save failed:', e);
-            alert('Failed to save file');
+            alert('Failed to save file: ' + e.message);
         }
     }
 
+    /**
+     * Prompts user to choose storage location and loads a mindmap.
+     */
     async loadJSON() {
+        const choice = await Modal.showStorageChoice();
+        if (!choice) return; // User cancelled
+
+        const provider = this.providers[choice];
         try {
-            const jsonString = await this.storage.load();
+            const jsonString = await provider.load();
             this.loadFromJSONString(jsonString);
         } catch (e) {
-            if (e !== 'No file selected') { // Ignore cancellation
+            if (e !== 'No file selected' && e !== 'Cancelled') { // Ignore cancellation
                 console.error('Load failed:', e);
-                alert('Failed to load file');
+                alert('Failed to load file: ' + e.message);
             }
         }
     }
 
+    /**
+     * Creates a new empty mindmap after confirmation.
+     */
     async newMap() {
         if (await Modal.showConfirm('Start new mind map? Unsaved changes will be lost.')) {
             const emptyState = {
@@ -140,7 +163,8 @@ export class PersistenceManager {
         }
 
         const bundleHTML = PersistenceManager.generateBundleHTML(htmlContent, data);
-        this.storage.save(`mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, bundleHTML, 'text/html');
+        // Always use local provider for bundle downloads
+        this.providers.local.save(`mindmap_bundle_${new Date().toISOString().slice(0, 10)}.html`, bundleHTML, 'text/html');
     }
 
 
@@ -195,4 +219,3 @@ export class PersistenceManager {
         return html;
     }
 }
-

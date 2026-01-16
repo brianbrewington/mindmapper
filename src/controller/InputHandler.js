@@ -32,10 +32,6 @@ export class InputHandler {
         this.uiManager = uiManager;
     }
 
-    setUIManager(uiManager) {
-        this.uiManager = uiManager;
-    }
-
     setupEventListeners() {
         this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
         this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));

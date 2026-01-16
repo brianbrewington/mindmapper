@@ -27,8 +27,12 @@ describe('Persistence Manager UI Integration', () => {
         // Output data
         const testData = JSON.stringify({ elements: [], scenes: [] });
 
-        // Mock storage load
-        persistenceManager.storage.load = vi.fn().mockResolvedValue(testData);
+        // Updated: manager now uses providers.local instead of storage
+        persistenceManager.providers.local.load = vi.fn().mockResolvedValue(testData);
+
+        // Mock the storage choice modal to return 'local'
+        const { Modal } = await import('./view/Modal.js');
+        vi.spyOn(Modal, 'showStorageChoice').mockResolvedValue('local');
 
         await persistenceManager.loadJSON();
 

@@ -235,7 +235,7 @@ export class ScenesPanel {
         this.updateSceneButtons();
 
         let index = 0;
-        const playNext = () => {
+        const playNext = async () => {
             if (!this.isPlaying) return;
 
             if (index >= this.model.scenes.length) index = 0;
@@ -246,8 +246,14 @@ export class ScenesPanel {
                 return;
             }
 
-            this.uiManager.restoreSceneViewport(scene);
             this.highlightSceneInList(index);
+
+            // Animate to the scene viewport
+            await this.uiManager.animateToSceneViewport(scene, 1500);
+
+            // Check if playback was stopped during animation
+            if (!this.isPlaying) return;
+
             this.showSceneOverlay(scene);
 
             const delay = scene.duration || CONFIG.defaultSceneDuration;
@@ -267,7 +273,9 @@ export class ScenesPanel {
         this.currentSceneIndex = (this.currentSceneIndex + 1) % this.model.scenes.length;
 
         const scene = this.model.scenes[this.currentSceneIndex];
-        this.uiManager.restoreSceneViewport(scene);
+        
+        // Animate to the scene viewport
+        this.uiManager.animateToSceneViewport(scene, 1500);
         this.highlightSceneInList(this.currentSceneIndex);
         this.showSceneOverlay(scene);
     }

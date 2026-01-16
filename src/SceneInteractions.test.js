@@ -54,7 +54,7 @@ describe('Scene Interactions', () => {
         expect(stepBtn).toBeTruthy();
     });
 
-    it('should advance to next scene when Single Step is clicked', () => {
+    it('should advance to next scene when Single Step is clicked', async () => {
         // Add 2 scenes with DISTINCT viewports to verify switching
         const vp1 = { zoom: 1.5, offset: { x: 10, y: 10 } };
         const vp2 = { zoom: 2.0, offset: { x: 20, y: 20 } };
@@ -63,6 +63,16 @@ describe('Scene Interactions', () => {
 
         // Setup UI
         uiManager.renderScenesList();
+
+        // Mock animateToSceneViewport to immediately apply viewport changes (no animation)
+        vi.spyOn(uiManager, 'animateToSceneViewport').mockImplementation((scene) => {
+            if (scene && scene.viewport) {
+                mockRenderer.cameraZoom = scene.viewport.zoom;
+                mockRenderer.cameraOffset = { ...scene.viewport.offset };
+                mockRenderer.draw();
+            }
+            return Promise.resolve();
+        });
 
         const stepBtn = document.getElementById('stepSceneBtn');
         expect(stepBtn).toBeTruthy();
