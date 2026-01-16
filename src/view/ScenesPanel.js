@@ -149,9 +149,9 @@ export class ScenesPanel {
             const currentSeconds = (scene.duration || CONFIG.defaultSceneDuration) / 1000;
             timeBtn.title = `Delay: ${currentSeconds}s`;
             timeBtn.style.padding = '2px 5px';
-            timeBtn.onclick = (e) => {
+            timeBtn.onclick = async (e) => {
                 e.stopPropagation();
-                const duration = prompt('Delay (seconds):', currentSeconds);
+                const duration = await Modal.showPrompt('Delay (seconds):', String(currentSeconds));
                 if (duration) {
                     scene.duration = parseFloat(duration) * 1000;
                     this.model.saveState();
@@ -164,9 +164,9 @@ export class ScenesPanel {
             renameBtn.textContent = '✏️';
             renameBtn.title = 'Rename Scene';
             renameBtn.style.padding = '2px 5px';
-            renameBtn.onclick = (e) => {
+            renameBtn.onclick = async (e) => {
                 e.stopPropagation();
-                const name = prompt('Rename Scene:', scene.name);
+                const name = await Modal.showPrompt('Rename Scene:', scene.name);
                 if (name) {
                     scene.name = name;
                     this.model.saveState();
@@ -179,9 +179,10 @@ export class ScenesPanel {
             deleteBtn.textContent = '🗑️';
             deleteBtn.title = 'Delete Scene';
             deleteBtn.style.padding = '2px 5px';
-            deleteBtn.onclick = (e) => {
+            deleteBtn.onclick = async (e) => {
                 e.stopPropagation();
-                if (confirm(`Delete scene "${scene.name}"?`)) {
+                const confirmed = await Modal.showConfirm(`Delete scene "${scene.name}"?`);
+                if (confirmed) {
                     this.model.removeScene(scene.id);
                     this.renderScenesList();
                 }

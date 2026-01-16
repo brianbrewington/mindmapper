@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
+import { Modal } from './view/Modal.js';
 
 describe('Scene Duration Units', () => {
     let model, uiManager;
@@ -29,37 +30,28 @@ describe('Scene Duration Units', () => {
         const inputHandler = {};
 
         uiManager = new UIManager(model, renderer, inputHandler);
-
-        // Mock window.prompt
-        vi.spyOn(window, 'prompt');
     });
 
-    it('should display current duration in seconds and save in milliseconds', () => {
+    it('should display current duration in seconds and save in milliseconds', async () => {
+        // Mock Modal.showPrompt instead of window.prompt
+        vi.spyOn(Modal, 'showPrompt').mockResolvedValue('5'); // User inputs 5 seconds
+
         // Trigger render
         uiManager.renderScenesList();
 
-        const timeBtn = document.querySelector('#scenesList button'); // The stopwatch button is the first one added in container? No, container has 3.
-        // Actually, checking the code, the container appends timeBtn, renameBtn, deleteBtn.
-        // So the first button inside the flex container is timeBtn.
-        // The container is appended to item, item appended to list.
-        // Let's find by text content
         const buttons = Array.from(document.querySelectorAll('button'));
         const stopwatchBtn = buttons.find(b => b.textContent === '⏱️');
 
         expect(stopwatchBtn).toBeTruthy();
 
-        // 1. Check Tooltip (optional, good to check if we updated it)
-        // Current code says "Delay: 2000ms"
-        // We want to verify that when we click, it prompts with "2" (seconds)
-
-        window.prompt.mockReturnValue("5"); // User inputs 5 seconds
-
         stopwatchBtn.click();
 
-        // Check prompt call
-        // expect(window.prompt).toHaveBeenCalledWith('Delay (seconds):', '2'); // 2000ms -> 2s
+        // Wait for async handler to complete
+        await vi.waitFor(() => {
+            expect(Modal.showPrompt).toHaveBeenCalled();
+        });
 
-        // Check Saved State
-        expect(model.scenes[0].duration).toBe(5000); // 5s -> 5000ms
+        // Check Saved State - 5s -> 5000ms
+        expect(model.scenes[0].duration).toBe(5000);
     });
 });

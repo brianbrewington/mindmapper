@@ -10,7 +10,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run Build
-echo "Runnign Build..."
+echo "Running Build..."
 npm run build
 if [ $? -ne 0 ]; then
     echo "Build failed! Commit aborted."

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { UIManager } from './view/UIManager.js';
 import { MindMapModel } from './model/MindMapModel.js';
 import { InputHandler } from './controller/InputHandler.js';
+import { Modal } from './view/Modal.js';
 
 describe('Scene Management', () => {
     let uiManager, model, renderer, inputHandler;
@@ -42,28 +43,38 @@ describe('Scene Management', () => {
     });
 
     // Test removed: Remove Scene button replaced by Context Menu
-    it('should rename scene via Pencil button', () => {
+    it('should rename scene via Pencil button', async () => {
         const list = document.getElementById('scenesList');
         const renameBtn = list.querySelector('button[title="Rename Scene"]');
         expect(renameBtn).toBeTruthy();
 
-        const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('New Scene Name');
+        // Mock Modal.showPrompt instead of window.prompt
+        const promptSpy = vi.spyOn(Modal, 'showPrompt').mockResolvedValue('New Scene Name');
         renameBtn.click();
 
-        expect(promptSpy).toHaveBeenCalled();
+        // Wait for async handler to complete
+        await vi.waitFor(() => {
+            expect(promptSpy).toHaveBeenCalled();
+        });
+        
         expect(model.scenes[0].name).toBe('New Scene Name');
         expect(list.querySelector('.scene-name').textContent).toBe('New Scene Name');
     });
 
-    it('should set duration via Stopwatch button', () => {
+    it('should set duration via Stopwatch button', async () => {
         const list = document.getElementById('scenesList');
         const timeBtn = list.querySelector('button[title*="Delay"]');
         expect(timeBtn).toBeTruthy();
 
-        const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('5');
+        // Mock Modal.showPrompt instead of window.prompt
+        const promptSpy = vi.spyOn(Modal, 'showPrompt').mockResolvedValue('5');
         timeBtn.click();
 
-        expect(promptSpy).toHaveBeenCalled();
+        // Wait for async handler to complete
+        await vi.waitFor(() => {
+            expect(promptSpy).toHaveBeenCalled();
+        });
+        
         expect(model.scenes[0].duration).toBe(5000);
     });
 
