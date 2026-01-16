@@ -81,11 +81,16 @@ export class InputHandler {
                 this.resizeHandle = result.handle;
                 this.startDrag(pos);
             } else if (result.type === 'element') {
-                // Navigation (Alt + Click)
+                // Check if clicking on link icon (🔗) - direct navigation
+                const worldPos = this.renderer.screenToWorld(e.clientX, e.clientY);
+                if (result.element.link && this.isClickOnLinkIcon(result.element, worldPos)) {
+                    this.openLink(result.element.link);
+                    return;
+                }
+
+                // Navigation (Alt + Click anywhere on element)
                 if (e.altKey && result.element.link) {
-                    let url = result.element.link;
-                    if (!url.startsWith('http')) url = 'http://' + url;
-                    window.open(url, '_blank');
+                    this.openLink(result.element.link);
                     return;
                 }
 
@@ -95,9 +100,7 @@ export class InputHandler {
             } else if (result.type === 'connection') {
                 // Navigation (Alt + Click)
                 if (e.altKey && result.connection.link) {
-                    let url = result.connection.link;
-                    if (!url.startsWith('http')) url = 'http://' + url;
-                    window.open(url, '_blank');
+                    this.openLink(result.connection.link);
                     return;
                 }
                 this.model.selectedElement = result.connection;
@@ -142,9 +145,20 @@ export class InputHandler {
             return;
         }
 
-        // Tooltips
+        // Tooltips and cursor hints
         if (this.uiManager) {
             const hit = this.hitTest(e.clientX, e.clientY);
+            const worldPos = this.renderer.screenToWorld(e.clientX, e.clientY);
+            
+            // Check if hovering over link icon - show pointer cursor
+            if (this.canvas && this.canvas.style) {
+                if (hit.type === 'element' && hit.element.link && this.isClickOnLinkIcon(hit.element, worldPos)) {
+                    this.canvas.style.cursor = 'pointer';
+                } else if (!this.isDragging) {
+                    this.canvas.style.cursor = 'default';
+                }
+            }
+            
             if (hit.type === 'element' && hit.element.comment) {
                 this.uiManager.updateTooltip(e.clientX, e.clientY, hit.element.comment);
             } else if (hit.type === 'connection' && hit.connection.comment) {
@@ -403,5 +417,49 @@ export class InputHandler {
         const hitThreshold = CONFIG.connectionHitThreshold / this.renderer.cameraZoom;
 
         return this.model.hitTest(worldPos.x, worldPos.y, hitThreshold);
+    }
+
+    /**
+     * Checks if a click position is on the link icon (🔗) of an element.
+     * The icon is drawn at specific offsets depending on element type.
+     * @param {Object} element - The element to check.
+     * @param {Object} worldPos - The click position in world coordinates.
+     * @returns {boolean} True if click is on the link icon.
+     */
+    isClickOnLinkIcon(element, worldPos) {
+        if (!element.link) return false;
+
+        let iconX, iconY;
+        const iconRadius = 10; // Hit area slightly larger than visual (5px visual + tolerance)
+
+        if (element.type === 'bubble') {
+            // Link icon position for bubbles: top-right area
+            iconX = element.x + element.radiusX - 10;
+            iconY = element.y - element.radiusY + 20;
+        } else if (element.type === 'image') {
+            // Link icon position for images: top-right area
+            iconX = element.x + element.width - 10;
+            iconY = element.y + 20;
+        } else {
+            return false;
+        }
+
+        // Check distance from click to icon center
+        const dx = worldPos.x - iconX;
+        const dy = worldPos.y - iconY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        return distance <= iconRadius;
+    }
+
+    /**
+     * Opens a link in a new tab, ensuring it has a protocol.
+     * @param {string} url - The URL to open.
+     */
+    openLink(url) {
+        if (!url.startsWith('http')) {
+            url = 'http://' + url;
+        }
+        window.open(url, '_blank');
     }
 }
